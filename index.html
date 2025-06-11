@@ -288,34 +288,41 @@
 
             // --- 메뉴 렌더링 함수들 ---
 
-            // "뒤로 가기" 버튼 생성 함수
-            function createBackButton(targetLevel, currentKey, currentValue) {
+            // "네비게이션" 버튼 생성 함수 (뒤로가기, 목록으로 돌아가기 등)
+            function createNavButton(type, targetLevel, currentKey, currentValue) {
                 const button = document.createElement('button');
                 button.className = 'back-button'; // CSS 클래스 적용
-                button.innerHTML = '<i class="fas fa-chevron-left mr-2"></i><span>뒤로</span>';
+                
+                if (type === 'back') { // Lev2 -> Lev1 또는 Lev3 -> Lev2
+                    button.innerHTML = '<i class="fas fa-chevron-left mr-2"></i><span>뒤로</span>';
+                } else if (type === 'toList') { // Lev4 (상세 화면) -> 메인 목록
+                    button.innerHTML = '<i class="fas fa-list mr-2"></i><span>목록으로 돌아가기</span>';
+                }
+
                 button.addEventListener('click', () => {
                     // 현재 활성화된 메뉴 버튼 리셋
                     if (currentActiveLev2Btn) currentActiveLev2Btn.classList.remove('active');
                     if (currentActiveLev3Btn) currentActiveLev3Btn.classList.remove('active-lev3');
 
-                    if (targetLevel === 1) { // Lev2에서 Lev1으로 돌아감
-                        updateLayout(1); // Lev1 + Details 모드
-                        lev2Col.innerHTML = ''; // 2단계 목록 비우기
-                        lev3Col.innerHTML = ''; // 3단계 목록 비우기
-                        // 1차 메뉴 활성화 상태 유지
-                        if (currentActiveLev1Btn) currentActiveLev1Btn.classList.add('active'); 
-                    } else if (targetLevel === 2) { // Lev3에서 Lev2으로 돌아감
-                        updateLayout(2); // Lev1 + Lev2 모드
-                        lev3Col.innerHTML = ''; // 3단계 목록 비우기
-                        renderLev2Dispatcher(currentKey); // Lev2 목록 다시 그리기 (active 상태 유지를 위해)
-                        // 2차 메뉴 활성화 상태 유지
-                        if (currentActiveLev2Btn) currentActiveLev2Btn.classList.add('active');
-                    } else if (targetLevel === 'details') { // 상세 화면(Lev4)에서 뒤로가기
-                        // 현재는 무조건 메인(Lev1)으로 돌아가도록 설정
-                        updateLayout(1);
-                        lev2Col.innerHTML = '';
+                    if (type === 'back') { 
+                        if (targetLevel === 1) { // Lev2에서 Lev1으로 돌아감
+                            updateLayout(1); // Lev1 + Details 모드
+                            lev2Col.innerHTML = ''; // 현재 2단계 목록 비우기
+                            lev3Col.innerHTML = ''; // 3단계 목록 비우기
+                            // 1차 메뉴 활성화 상태 유지
+                            if (currentActiveLev1Btn) currentActiveLev1Btn.classList.add('active'); 
+                        } else if (targetLevel === 2) { // Lev3에서 Lev2으로 돌아감
+                            updateLayout(2); // Lev1 + Lev2 모드
+                            lev3Col.innerHTML = ''; // 3단계 목록 비우기
+                            renderLev2Dispatcher(currentKey); // Lev2 목록 다시 그리기 (active 상태 유지를 위해)
+                            // 2차 메뉴 활성화 상태 유지
+                            if (currentActiveLev2Btn) currentActiveLev2Btn.classList.add('active');
+                        }
+                    } else if (type === 'toList') { // 상세 화면(Lev4)에서 메인(Lev1)으로 돌아가기
+                        updateLayout(1); // Go back to initial Lev1 + Details (empty) view
+                        lev2Col.innerHTML = ''; // Clear other columns
                         lev3Col.innerHTML = '';
-                        // 1차 메뉴 활성화 상태 유지
+                        // 1차 메뉴 활성화 상태 유지 (이전 상태로 돌아가므로)
                         if (currentActiveLev1Btn) currentActiveLev1Btn.classList.add('active'); 
                     }
                 });
@@ -365,7 +372,7 @@
                 list.innerHTML = ''; // 기존 2차 메뉴 내용 초기화
                 
                 if (!isLargeScreen()) { // 모바일에서는 뒤로가기 버튼 추가
-                    list.appendChild(createBackButton(1, categoryKey));
+                    list.appendChild(createNavButton('back', 1, categoryKey));
                 }
 
                 if (categoryKey === 'calendar') {
@@ -437,7 +444,7 @@
                 list.innerHTML = ''; // 기존 3차 메뉴 내용 초기화
 
                 if (!isLargeScreen()) { // 모바일에서는 뒤로가기 버튼 추가
-                    list.appendChild(createBackButton(2, categoryKey, selectedValue));
+                    list.appendChild(createNavButton('back', 2, categoryKey, selectedValue));
                 }
 
                 if (categoryKey === 'calendar') {
@@ -580,31 +587,35 @@
                 const detail = document.getElementById('details-content');
                 detail.innerHTML = ''; // 기존 내용 비우기
 
-                // 모든 상세 화면에 뒤로가기 버튼 추가
+                // 모든 상세 화면에 "목록으로 돌아가기" 버튼 추가
                 const backBtnContainer = document.createElement('div');
                 backBtnContainer.className = 'mb-4';
-                backBtnContainer.appendChild(createBackButton('details', null, null)); // Lev4에서 뒤로가기
-                detail.appendChild(backBtnContainer);
+                backBtnContainer.appendChild(createNavButton('toList', null, null, null)); 
+                detail.appendChild(backBtnContainer); // 먼저 버튼 컨테이너를 추가
+
+                // 실제 콘텐츠를 담을 임시 div 생성
+                const contentDiv = document.createElement('div');
 
 
                 if (itemType === 'pokemon') {
-                    renderPokemonDetails(item, detail);
+                    renderPokemonDetails(item, contentDiv);
                 } else if (itemType === 'calendarEvent') {
-                    renderCalendarEventDetails(item, detail);
+                    renderCalendarEventDetails(item, contentDiv);
                 } else if (itemType === 'tip') {
-                    renderTipDetails(item, detail);
+                    renderTipDetails(item, contentDiv);
                 } else if (itemType === 'itemDetail') { // 아이템 상세
-                    renderItemRuneChipDetails(item, detail, '아이템');
+                    renderItemRuneChipDetails(item, contentDiv, '아이템', item.name);
                 } else if (itemType === 'runeDetail') { // 룬 상세
-                    renderItemRuneChipDetails(item, detail, '룬');
+                    renderItemRuneChipDetails(item, contentDiv, '룬', item.name);
                 } else if (itemType === 'chipDetail') { // 칩 상세
-                    renderItemRuneChipDetails(item, detail, '칩');
+                    renderItemRuneChipDetails(item, contentDiv, '칩', item.name);
                 } else {
                     const errorMessage = document.createElement('p');
                     errorMessage.className = 'text-red-500 text-center';
                     errorMessage.textContent = '선택된 항목의 상세 정보를 표시할 수 없습니다.';
-                    detail.appendChild(errorMessage);
+                    contentDiv.appendChild(errorMessage);
                 }
+                detail.appendChild(contentDiv); // 콘텐츠를 담은 div를 추가
             }
 
             // --- 각 항목별 상세 정보 렌더링 함수 ---
@@ -731,8 +742,8 @@
             // 아이템/룬/칩 상세 정보 렌더링 (새로 추가)
             function renderItemRuneChipDetails(detailItem, detailElement, itemCategoryName) {
                 const contentHtml = `
-                    <h2 class="text-2xl font-bold mb-4">${itemCategoryName} - ${detailItem.name}</h2>
-                    ${detailItem.imageUrl ? `<img src="${detailItem.imageUrl}" alt="${detailItem.name}" class="w-full h-48 object-contain mb-4 rounded-lg bg-gray-800 p-2">` : ''}
+                    <h2 class="text-2xl font-bold mb-4">${itemCategoryName} - ${detailItem.name || ''}</h2>
+                    ${detailItem.imageUrl ? `<img src="${detailItem.imageUrl}" alt="${detailItem.name || itemCategoryName}" class="w-full h-48 object-contain mb-4 rounded-lg bg-gray-800 p-2">` : ''}
                     <p class="text-gray-300 mb-4">${detailItem.description || '상세 설명이 없습니다.'}</p>
                 `;
                 detailElement.innerHTML += contentHtml;
@@ -867,7 +878,7 @@
                     noResult.className = 'px-4 py-2 text-gray-500 text-sm';
                     noResult.textContent = '검색 결과가 없습니다.';
                     searchResultsDiv.appendChild(noResult);
-                    searchResultsDiv.classList.remove('hidden');
+                    searchResultsDiv.classList.add('hidden');
                 }
             });
 
