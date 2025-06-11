@@ -1,0 +1,404 @@
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>포켓몬 도감 - 최종본</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+        
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2125965839205311"
+         crossorigin="anonymous"></script>
+    
+        <style>
+            body {
+                font-family: 'Noto Sans KR', sans-serif;
+                background-color: #0f172a;
+                color: #d1d5db;
+                overflow-x: hidden;
+            }
+            .app-shell {
+                display: flex;
+                flex-direction: row;
+                height: calc(100vh - 160px); /* 헤더+검색창 높이를 제외한 전체 높이 */
+                align-items: stretch;
+            }
+            .nav-panel {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                background-color: #1f2937;
+                border-right: 1px solid #374151;
+                padding: 1.5rem;
+                box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+                flex-shrink: 0;
+                transition: all 0.3s ease-in-out;
+            }
+            #lev1-panel { width: 240px; }
+            #lev2-panel, #lev3-panel {
+                 width: 260px;
+                 background-color: #1a2330;
+                 display: none; /* 기본적으로 숨김 */
+            }
+            .main-content {
+                flex-grow: 1;
+                padding: 1.5rem;
+                overflow-y: auto;
+                min-width: 0;
+            }
+            .list-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border-radius: 0.5rem;
+                text-align: left;
+                transition: background-color 0.2s ease, color 0.2s ease;
+                cursor: pointer;
+                color: #e5e7eb;
+                font-weight: 500;
+            }
+            .list-item:hover {
+                background-color: #374151;
+            }
+            .list-item.active {
+                color: white;
+                background-color: #4f46e5;
+            }
+            .list-item.active-lev3 {
+                 background-color: #be185d;
+            }
+            .detail-section-title {
+                font-size: 1.2rem; font-weight: 700; color: #90cdf4; padding-bottom: 0.5rem;
+                border-bottom: 2px solid #4a5568; margin-bottom: 1rem;
+            }
+            .tag {
+                display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px;
+                font-weight: 600; font-size: 0.8rem;
+            }
+            .type-물 { background-color: #6390F0; color: white; }
+            .type-땅 { background-color: #E0C068; color: white; }
+            .type-드래곤 { background-color: #7038F8; color: white; }
+            .type-에스퍼 { background-color: #F85888; color: white; }
+            .ad-container {
+                margin-top: 1.5rem; padding: 1rem; min-height: 100px;
+                display: flex; align-items: center; justify-content: center;
+                background-color: #1f2937; border-radius: 0.5rem;
+            }
+            .back-button {
+                background-color: #4f46e5;
+                color: white;
+                margin-bottom: 1rem;
+            }
+            #search-results {
+                position: absolute;
+                top: 130px; /* 헤더 높이 바로 아래 */
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 600px;
+                background-color: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 0.5rem;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+                z-index: 50;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+            .search-result-item {
+                padding: 0.75rem 1.25rem;
+                cursor: pointer;
+                border-bottom: 1px solid #334155;
+            }
+            .search-result-item:last-child {
+                border-bottom: none;
+            }
+            .search-result-item:hover {
+                background-color: #334155;
+            }
+        </style>
+    </head>
+    <body class="p-4 sm:p-6">
+    
+        <header class="text-center mb-4">
+            <h1 class="text-3xl sm:text-4xl font-bold text-yellow-400">포켓몬 도감</h1>
+            <p class="text-gray-400 mt-2">집중 모드 및 검색 기능</p>
+        </header>
+    
+        <!-- 검색창 UI -->
+        <div class="mb-4 relative max-w-xl mx-auto">
+            <div class="relative">
+                <i id="search-icon" class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"></i>
+                <input type="text" id="search-input" placeholder="포켓몬, 아이템, 룬 이름 등으로 검색..." class="w-full bg-gray-800 border border-gray-700 rounded-full py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div id="search-results" class="hidden"></div>
+        </div>
+    
+    
+        <div id="app-shell" class="app-shell">
+            <div id="lev1-panel" class="nav-panel">
+                <h2 class="text-xl font-bold mb-4 text-white">카테고리</h2>
+                <div id="lev1-list" class="space-y-2 overflow-y-auto"></div>
+            </div>
+            <div id="lev2-panel" class="nav-panel">
+                 <h2 id="lev2-title" class="text-xl font-bold mb-4 text-white"></h2>
+                 <div id="lev2-list" class="space-y-2 overflow-y-auto"></div>
+            </div>
+            <div id="lev3-panel" class="nav-panel">
+                 <h2 id="lev3-title" class="text-xl font-bold mb-4 text-white"></h2>
+                 <div id="lev3-list" class="space-y-2 overflow-y-auto"></div>
+            </div>
+            
+            <main id="main-content" class="main-content">
+                 <div id="details-content" class="bg-gray-800 p-6 rounded-lg min-h-full">
+                     <p class="text-gray-400 text-center pt-10">좌측 메뉴에서 항목을 선택하거나, 상단에서 검색하세요.</p>
+                </div>
+                <div class="ad-container">
+                    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2125965839205311" data-ad-slot="5532734526" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                </div>
+            </main>
+        </div>
+    
+        <script>
+            // --- 무효 트래픽 방지 로직 (AdClickLimiter) ---
+            const AdClickLimiter = {
+                CLICK_LIMIT: 5, TIME_LIMIT_HOURS: 1, STORAGE_KEY: 'adClickData',
+                getTimestamps: function() { const storedData = localStorage.getItem(this.STORAGE_KEY); return storedData ? JSON.parse(storedData) : []; },
+                recordClick: function() { let timestamps = this.getTimestamps(); const now = new Date().getTime(); timestamps.push(now); localStorage.setItem(this.STORAGE_KEY, JSON.stringify(timestamps)); return this.isUserBlocked(); },
+                isUserBlocked: function() {
+                    const timestamps = this.getTimestamps(); const now = new Date().getTime(); const timeLimitMs = this.TIME_LIMIT_HOURS * 60 * 60 * 1000;
+                    const recentTimestamps = timestamps.filter(ts => now - ts < timeLimitMs);
+                    if (timestamps.length !== recentTimestamps.length) { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(recentTimestamps)); }
+                    return recentTimestamps.length >= this.CLICK_LIMIT;
+                },
+                hideAds: function() {
+                    console.warn("비정상적인 광고 클릭이 감지되어, 광고 표시를 일시적으로 중단합니다.");
+                    document.querySelectorAll('.ad-container').forEach(ad => { ad.style.display = 'none'; });
+                },
+                init: function() {
+                    if (this.isUserBlocked()) { this.hideAds(); return; }
+                    let isMouseOverAd = false;
+                    document.querySelectorAll('.ad-container').forEach(container => {
+                        container.addEventListener('mouseover', () => { isMouseOverAd = true; });
+                        container.addEventListener('mouseout', () => { isMouseOverAd = false; });
+                    });
+                    window.addEventListener('blur', () => { if (isMouseOverAd) { if (this.recordClick()) { this.hideAds(); } } });
+                }
+            };
+    
+    
+            const pokemonData = [
+                { id: 1, name: "원시가이오가", image: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2F1QNza%2FbtsOv13War0%2FU5l6ZgHIzXEfdhdFDUFqkk%2Fimg.jpg", grade: "SS", type: "물", skills: [ { name: "Active: 물의파동", description: "적 단일 목표를 부딪혀 120% 특수 공격 +96의 특수피해를 입히며, 자신이 2턴 동안 [치명타 저항 증가Ⅲ] 효과를 얻으며, 1명의 팀원에게 [정화Ⅰ]을 사용합니다." }, { name: "Passive: 근원의바다", parts: [ { title: "근원의 바다", text: "20% 치명타 저항." }, { title: "비오는 날씨", text: "원시가이오가가 전장에 나타나면 팀에게 [비오는 날씨] 날씨 효과를 부여합니다." }, { title: "6성 개방", text: "구름이 걷히고 비가 그치다: 매 대전이 시작될 때마다 아군 물타입 포켓몬은 [해양의 축복] 효과를 획득하고, 물타입 아군의 회복량은 2배가 됩니다." }, { title: "7성 개방", text: "매 2라운드마다 임의의 적 2명에게 [해일] 표식을 부여합니다 (2라운드 동안 지속, 라운드 동안 냉각)." }, { title: "8성 개방", text: "물 타입의 팀원이 일반 공격 시, 대상은 3턴 동안 모두 [해양의 영혼]으로 변신합니다." } ] } ], nature: ["조심", "겁쟁이"], build: ["특공", "스피드"], item: "먹다남은 사과", runes: ["전투광 3개", "금강 6개"], chips: ["귀갑 2개", "뱀 4개"], team: "원시가이오가 덱", description: "가이오가 진정한 힘, 각성 후의 원시적인 모습. 모든 바다를 관장하는 심해의 왕이다." },
+                { id: 2, name: "원시그란돈", image: "https://i.namu.wiki/i/7QhXy4nBChsS0R4P_s3C2A9nEgoWqKy5nK7G-K18w6Wc-uV8xPExD5mGZ9zT5S_NqgD5K0vUvj-B7M-Kx9yUoA.webp", grade: "SS", type: "땅", skills: [{ name: "단애의칼", description: "적 전체를 공격하여 120% 물리 피해를 입히고, 50% 확률로 대상을 1턴간 [기절]시킵니다." }, { name: "불꽃펀치", description: "적 단일 목표에 180% 물리 피해를 주고 30% 확률로 [화상] 상태로 만듭니다." }], nature: ["고집", "용감"], build: ["공격", "방어", "체력"], item: "구애머리띠", runes: ["파워 6개", "견고 3개"], chips: ["맹공 4개", "철벽 2개"], team: "원시그란돈 덱", description: "그란돈이 원시회귀를 통해 고대의 힘을 되찾은 모습. 대륙의 창조자로 불린다." },
+                { id: 3, name: "메가레쿠쟈", image: "https://i.namu.wiki/i/22aWwVb_7Qz-u-y-0q8zB2D0Q7g-qJ4n3g8p9e5j1jF6l3g8D7K6s5H4g3F2A1c0B.webp", grade: "S+", type: "드래곤", skills: [{ name: "화룡점정", description: "적 단일 대상에게 250%의 초고속 물리 피해를 입힙니다." }, { name: "델타스트림", description: "등장 시 5턴간 날씨를 [난기류] 상태로 만듭니다." }], nature: ["명랑", "고집"], build: ["스피드", "공격"], item: "생명의구슬", runes: ["신속 6개", "예리 3개"], chips: ["용 4개", "격투 2개"], team: "메가레쿠쟈 덱", description: "레쿠쟈가 메가진화한 모습. 기류와 기상을 제어할 수 있다." },
+                { id: 4, name: "뮤츠", image: "https://i.namu.wiki/i/5_OU2bUe1w49tJc5akpA9eHeI3k1uHkMy52Zq1u7v9Jb-cM2u-02vX3wVz-j7G3y-CjBqM9e7A_t1q9zX4yRkA.webp", grade: "SS", type: "에스퍼", skills: [{ name: "사이코키네시스", description: "강력한 염동력으로 적 전체에게 130% 특수 피해를 줍니다." }, { name: "HP회복", description: "자신의 최대 HP의 50%를 회복합니다." }], nature: ["겁쟁이", "조심"], build: ["특공", "스피드"], item: "뮤츠나이트Y", runes: ["마력 6개", "지혜 3개"], chips: ["사이코 4개", "보호 2개"], team: "뮤츠 덱", description: "유전 공학으로 만들어진 궁극의 포켓몬." }
+            ];
+            
+            const categories = { 'type': '포켓몬 타입', 'grade': '포켓몬 등급', 'item': '아이템', 'rune': '룬', 'chip': '칩', 'team': '추천 덱' };
+    
+            // DOM Elements
+            const appShell = document.getElementById('app-shell');
+            const searchInput = document.getElementById('search-input');
+            const searchIcon = document.getElementById('search-icon');
+            const searchResultsContainer = document.getElementById('search-results');
+            const lev1Panel = document.getElementById('lev1-panel');
+            const lev1List = document.getElementById('lev1-list');
+            const lev2Panel = document.getElementById('lev2-panel');
+            const lev2Title = document.getElementById('lev2-title');
+            const lev2List = document.getElementById('lev2-list');
+            const lev3Panel = document.getElementById('lev3-panel');
+            const lev3Title = document.getElementById('lev3-title');
+            const lev3List = document.getElementById('lev3-list');
+            const detailsContent = document.getElementById('details-content');
+    
+            let activeState = { lev1: null, lev2: null, lev3: null };
+    
+            // Functions
+            function hidePanel(panel) { panel.style.display = 'none'; }
+            function showPanel(panel) { panel.style.display = 'flex'; }
+            function clearActive(level) {
+                if (level <= 1 && activeState.lev1) activeState.lev1.classList.remove('active');
+                if (level <= 2 && activeState.lev2) activeState.lev2.classList.remove('active');
+                if (level <= 3 && activeState.lev3) activeState.lev3.classList.remove('active', 'active-lev3');
+            }
+            function pushAd() {
+                // 더 안정적인 광고 요청을 위해 setTimeout 사용
+                setTimeout(() => {
+                    try {
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    } catch (e) {
+                        console.error("AdSense Push Error:", e.message);
+                    }
+                }, 100);
+            }
+    
+            function createPokemonDetailHTML(pokemon) {
+                const skillsHTML = pokemon.skills.map(skill => {
+                    const skillContentHTML = skill.parts ? skill.parts.map(part => `<div class="mt-2 text-left"><strong class="text-gray-200">${part.title}:</strong><span class="text-gray-400 ml-2">${part.text}</span></div>`).join('') : `<p class="text-gray-400 text-left">${skill.description}</p>`;
+                    return `<div class="p-4 bg-gray-900 rounded-lg"><h4 class="font-bold text-lg text-yellow-300 text-left">${skill.name}</h4>${skillContentHTML}</div>`;
+                }).join('');
+                
+                // 미들 광고 HTML
+                const middleAdHTML = `<div class="ad-container mt-6"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2125965839205311" data-ad-slot="7967326175" data-ad-format="auto" data-full-width-responsive="true"></ins></div>`;
+    
+                return `<button id="back-to-list" class="list-item back-button w-auto mb-4 hidden"><i class="fas fa-arrow-left mr-2"></i>목록으로 돌아가기</button>
+                    <div class="flex flex-col gap-6">
+                        <h3 class="text-2xl font-bold text-center text-white">${pokemon.name}</h3>
+                        <div><img src="${pokemon.image}" alt="${pokemon.name}" class="w-full max-w-xs mx-auto h-auto rounded-lg border-4 border-gray-600 shadow-lg" onerror="this.onerror=null;this.src='https://placehold.co/400x400/1f2937/d1d5db?text=Image+Not+Found';"></div>
+                        <div class="flex justify-center items-center gap-4"><span class="tag type-${pokemon.type}">${pokemon.type}</span><span class="tag bg-gray-600 text-white">${pokemon.grade} 등급</span></div>
+                        <p class="text-gray-300 italic text-center">${pokemon.description}</p>
+                        <div><h3 class="detail-section-title"><i class="fas fa-bolt mr-2"></i>스킬 정보</h3><div class="space-y-4">${skillsHTML}</div></div>
+                        ${middleAdHTML}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><h3 class="detail-section-title"><i class="fas fa-leaf mr-2"></i>추천 성격</h3><div class="flex flex-wrap gap-2">${pokemon.nature.map(n => `<span class="bg-green-600 text-white px-3 py-1 rounded-full text-sm">${n}</span>`).join('')}</div></div>
+                            <div><h3 class="detail-section-title"><i class="fas fa-gem mr-2"></i>추천 아이템</h3><p class="bg-gray-900 p-2 rounded text-center">${pokemon.item}</p></div>
+                            <div><h3 class="detail-section-title"><i class="fas fa-ring mr-2"></i>추천 룬</h3><div class="flex flex-wrap gap-2">${pokemon.runes.map(r => `<span class="bg-purple-600 text-white px-3 py-1 rounded-full text-sm">${r}</span>`).join('')}</div></div>
+                            <div><h3 class="detail-section-title"><i class="fas fa-microchip mr-2"></i>추천 칩</h3><div class="flex flex-wrap gap-2">${pokemon.chips.map(c => `<span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm">${c}</span>`).join('')}</div></div>
+                        </div>
+                    </div>`;
+            }
+            
+            function exitFocusMode() { showPanel(lev2Panel); showPanel(lev3Panel); detailsContent.innerHTML = '<p class="text-gray-400 text-center pt-10">포켓몬을 선택하세요.</p>'; }
+            
+            function renderDetails(pokemon, isFromSearch = false) {
+                hidePanel(lev2Panel); hidePanel(lev3Panel);
+                detailsContent.innerHTML = createPokemonDetailHTML(pokemon);
+                const backButton = document.getElementById('back-to-list');
+                if (!isFromSearch) {
+                    backButton.classList.remove('hidden');
+                    backButton.addEventListener('click', exitFocusMode);
+                }
+                pushAd();
+            }
+    
+            function renderCategoryDetail(categoryKey, categoryValue) {
+                 hidePanel(lev2Panel); hidePanel(lev3Panel);
+                 const filteredPokemon = pokemonData.filter(p => (Array.isArray(p[categoryKey]) ? p[categoryKey].some(item => item.startsWith(categoryValue)) : p[categoryKey] === categoryValue));
+                 const pokemonListHTML = filteredPokemon.map(p => `<button class="list-item" data-pokemon-id="${p.id}">${p.name}</button>`).join('');
+                 detailsContent.innerHTML = `
+                    <h3 class="text-2xl font-bold mb-4">${categories[categoryKey]}: ${categoryValue}</h3>
+                    <p class="mb-4 text-gray-400">이 항목을 사용하는 포켓몬 목록입니다.</p>
+                    <div class="space-y-2">${pokemonListHTML}</div>
+                 `;
+                 detailsContent.querySelectorAll('.list-item').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const pokemonId = parseInt(button.dataset.pokemonId);
+                        const pokemon = pokemonData.find(p => p.id === pokemonId);
+                        renderDetails(pokemon, true);
+                    });
+                 });
+                 pushAd();
+            }
+    
+            function renderLev3(key, value) {
+                lev3Title.textContent = '포켓몬 선택'; lev3List.innerHTML = '';
+                const filteredPokemon = pokemonData.filter(p => (Array.isArray(p[key]) ? p[key].some(item => item.startsWith(value)) : p[key] === value));
+                filteredPokemon.forEach(pokemon => {
+                    const button = document.createElement('button');
+                    button.className = 'list-item'; button.textContent = pokemon.name;
+                    button.addEventListener('click', (e) => { e.stopPropagation(); clearActive(3); button.classList.add('active', 'active-lev3'); activeState.lev3 = button; renderDetails(pokemon); });
+                    lev3List.appendChild(button);
+                });
+                showPanel(lev3Panel);
+            }
+    
+            function renderLev2(key, parentButton) {
+                clearActive(1); parentButton.classList.add('active'); activeState.lev1 = parentButton;
+                lev2Title.textContent = categories[key]; lev2List.innerHTML = '';
+                detailsContent.innerHTML = '<p class="text-gray-400 text-center pt-10">항목을 선택하여 포켓몬 목록을 확인하세요.</p>';
+                showPanel(lev2Panel); hidePanel(lev3Panel);
+                const uniqueValues = [...new Set(key === 'rune' || key === 'chip' ? pokemonData.flatMap(p => p[key] ? p[key].map(item => item.split(' ')[0]) : []) : pokemonData.map(p => p[key]).filter(Boolean))].sort();
+                uniqueValues.forEach(value => {
+                    const button = document.createElement('button');
+                    button.className = 'list-item'; button.innerHTML = `<span>${value}</span><i class="fas fa-chevron-right text-xs text-gray-500"></i>`;
+                    button.addEventListener('click', (e) => { e.stopPropagation(); clearActive(2); button.classList.add('active'); activeState.lev2 = button; renderLev3(key, value); });
+                    lev2List.appendChild(button);
+                });
+            }
+    
+            function renderLev1() {
+                lev1List.innerHTML = '';
+                for (const key in categories) {
+                    const button = document.createElement('button');
+                    button.className = 'list-item'; button.innerHTML = `<span>${categories[key]}</span><i class="fas fa-chevron-right text-xs text-gray-500"></i>`;
+                    button.addEventListener('click', (e) => { e.stopPropagation(); if (activeState.lev1 === button) { hidePanel(lev2Panel); hidePanel(lev3Panel); clearActive(1); activeState.lev1 = null; } else { renderLev2(key, button); } });
+                    lev1List.appendChild(button);
+                }
+            }
+    
+            // --- Search Logic ---
+            function getSearchResults(term) {
+                if (!term) return [];
+                const results = [];
+                const lowerTerm = term.toLowerCase();
+                const foundItems = new Set();
+                pokemonData.forEach(p => { if (p.name && p.name.toLowerCase().includes(lowerTerm)) { results.push({ type: 'pokemon', name: p.name, data: p }); foundItems.add(p.name); } });
+                for (const key in categories) {
+                    const processCategory = (value) => {
+                        if (value && typeof value === 'string' && value.toLowerCase().includes(lowerTerm) && !foundItems.has(value)) {
+                            results.push({ type: 'category', name: value, categoryKey: key, categoryName: categories[key] });
+                            foundItems.add(value);
+                        }
+                    };
+                    if (key === 'rune' || key === 'chip') {
+                        const allValues = pokemonData.flatMap(p => Array.isArray(p[key]) ? p[key].map(item => item.split(' ')[0]) : []);
+                        [...new Set(allValues)].forEach(processCategory);
+                    } else {
+                        const allValues = pokemonData.map(p => p[key]).filter(Boolean);
+                        [...new Set(allValues)].forEach(processCategory);
+                    }
+                }
+                return results;
+            }
+    
+            function executeSearchResult(result) {
+                if (!result) return;
+                if (result.type === 'pokemon') {
+                    renderDetails(result.data, true);
+                } else {
+                    renderCategoryDetail(result.categoryKey, result.name);
+                }
+                searchInput.value = '';
+                searchResultsContainer.classList.add('hidden');
+            }
+    
+            function displaySearchResults(results) {
+                searchResultsContainer.innerHTML = '';
+                if (results.length === 0) {
+                    searchResultsContainer.classList.add('hidden');
+                    return;
+                }
+                searchResultsContainer.classList.remove('hidden');
+                results.forEach(res => {
+                    const item = document.createElement('div');
+                    item.className = 'search-result-item';
+                    item.innerHTML = `<span>${res.name}</span> <span class="text-xs text-gray-400 ml-2">(${res.type === 'pokemon' ? '포켓몬' : res.categoryName})</span>`;
+                    item.addEventListener('click', () => executeSearchResult(res));
+                    searchResultsContainer.appendChild(item);
+                });
+            }
+    
+            function performTopSearch() {
+                const term = searchInput.value;
+                const results = getSearchResults(term);
+                if (results.length > 0) {
+                    executeSearchResult(results[0]);
+                }
+            }
+            
+            searchInput.addEventListener('input', () => displaySearchResults(getSearchResults(searchInput.value)));
+            searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); performTopSearch(); } });
+            searchIcon.addEventListener('click', performTopSearch);
+            document.addEventListener('click', (e) => { if (!searchInput.contains(e.target) && !searchResultsContainer.contains(e.target)) { searchResultsContainer.classList.add('hidden'); } });
+    
+            // Initialize
+            renderLev1();
+            pushAd();
+            AdClickLimiter.init();
+    
+        </script>
+    </body>
+    </html>
+    
