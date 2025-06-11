@@ -22,10 +22,8 @@ window.itemDetails = {
 
 window.runeDetails = {
      "전투광": {
-        description: "공격 룬스톤",
-        description: "3개 공명: PVP 피해 보너스 +8%",
-        description: "6개 공명: 피해 보너스 +8%"
-        imageUrl: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbI8qmg%2FbtsOx9mICsj%2FHPekYM5s0k8xFLHYQoLdG1%2Fimg.png" // 예시 이미지 URL
+        description: "공격 룬스톤\n3개 공명: PVP 피해 보너스 +8%\n6개 공명: 피해 보너스 +8%", // 하나의 description 속성에 \n으로 줄바꿈
+        imageUrl: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbI8qmg%2FbtsOx9mICsj%2FHPekYM5s0k8xFLHYQoLdG1%2Fimg.png"
     },
     "금강": {
         description: "받는 물리 피해량이 감소합니다. 물리 방어 능력을 강화합니다.",
