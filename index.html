@@ -123,6 +123,10 @@
             #lev2-list .list-item { padding-left: 2rem; } /* 기본 px-4 (1rem)에서 2rem 추가 */
             #lev3-list .list-item { padding-left: 3rem; } /* 기본 px-4 (1rem)에서 3rem 추가 */
         }
+        /* 뒤로가기 버튼 스타일 */
+        .back-button {
+            @apply flex items-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg mb-2 cursor-pointer;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-6">
@@ -287,21 +291,32 @@
             // "뒤로 가기" 버튼 생성 함수
             function createBackButton(targetLevel, currentKey, currentValue) {
                 const button = document.createElement('button');
-                button.className = 'list-item flex items-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg mb-2';
+                button.className = 'back-button'; // CSS 클래스 적용
                 button.innerHTML = '<i class="fas fa-chevron-left mr-2"></i><span>뒤로</span>';
                 button.addEventListener('click', () => {
                     // 현재 활성화된 메뉴 버튼 리셋
                     if (currentActiveLev2Btn) currentActiveLev2Btn.classList.remove('active');
                     if (currentActiveLev3Btn) currentActiveLev3Btn.classList.remove('active-lev3');
 
-                    if (targetLevel === 1) { // Lev2에서 Lev1으로
+                    if (targetLevel === 1) { // Lev2에서 Lev1으로 돌아감
                         updateLayout(1); // Lev1 + Details 모드
-                        lev2Col.innerHTML = ''; // 현재 2단계 목록 비우기
+                        lev2Col.innerHTML = ''; // 2단계 목록 비우기
                         lev3Col.innerHTML = ''; // 3단계 목록 비우기
-                    } else if (targetLevel === 2) { // Lev3에서 Lev2으로
+                        // 1차 메뉴 활성화 상태 유지
+                        if (currentActiveLev1Btn) currentActiveLev1Btn.classList.add('active'); 
+                    } else if (targetLevel === 2) { // Lev3에서 Lev2으로 돌아감
                         updateLayout(2); // Lev1 + Lev2 모드
-                        lev3Col.innerHTML = ''; // 현재 3단계 목록 비우기
-                        renderLev2Dispatcher(currentKey); // Lev2 목록 다시 그리기
+                        lev3Col.innerHTML = ''; // 3단계 목록 비우기
+                        renderLev2Dispatcher(currentKey); // Lev2 목록 다시 그리기 (active 상태 유지를 위해)
+                        // 2차 메뉴 활성화 상태 유지
+                        if (currentActiveLev2Btn) currentActiveLev2Btn.classList.add('active');
+                    } else if (targetLevel === 'details') { // 상세 화면(Lev4)에서 뒤로가기
+                        // 현재는 무조건 메인(Lev1)으로 돌아가도록 설정
+                        updateLayout(1);
+                        lev2Col.innerHTML = '';
+                        lev3Col.innerHTML = '';
+                        // 1차 메뉴 활성화 상태 유지
+                        if (currentActiveLev1Btn) currentActiveLev1Btn.classList.add('active'); 
                     }
                 });
                 return button;
@@ -357,11 +372,42 @@
                     renderCalendarMonths(list);
                 } else if (categoryKey === 'tip') {
                     renderTipCategories(list);
-                } else { // 기존 포켓몬 관련 카테고리
-                    // 룬과 칩은 "이름 수량" 형식에서 이름만 추출하여 고유값 만듦
+                } else if (['item', 'rune', 'chip'].includes(categoryKey)) { // 아이템, 룬, 칩 카테고리
+                    // 해당 아이템/룬/칩의 고유 이름을 가져옴 (예: "먹다남은 사과", "전투광")
                     const values = [...new Set(window.pokemonData.map(p => p[categoryKey]).flat().filter(Boolean).map(s => {
                         return (categoryKey === 'rune' || categoryKey === 'chip') ? s.split(' ')[0] : s;
                     }))];
+
+                    values.forEach(value => {
+                        const button = document.createElement('button');
+                        button.className = 'list-item';
+                        button.innerHTML = `<span>${value}</span><i class="fas fa-chevron-right text-xs text-gray-400"></i>`;
+                        button.addEventListener('click', () => {
+                            // 2차 메뉴 활성화 상태 관리
+                            if (currentActiveLev2Btn) {
+                                currentActiveLev2Btn.classList.remove('active');
+                            }
+                            button.classList.add('active');
+                            currentActiveLev2Btn = button;
+
+                            updateLayout(4); // 아이템/룬/칩은 바로 상세 화면으로 이동 (Lev1 + Details)
+                            
+                            // 해당 아이템/룬/칩 객체를 직접 찾아서 전달
+                            let itemDetailObject = null;
+                            if (categoryKey === 'item') itemDetailObject = window.itemDetails[value];
+                            else if (categoryKey === 'rune') itemDetailObject = window.runeDetails[value];
+                            else if (categoryKey === 'chip') itemDetailObject = window.chipDetails[value];
+
+                            if (itemDetailObject) {
+                                renderDetailsDispatcher(itemDetailObject, categoryKey + 'Detail'); // 예: 'itemDetail'
+                            } else {
+                                detailsCol.innerHTML = '<p class="text-gray-400 text-center pt-10">상세 정보를 찾을 수 없습니다.</p>';
+                            }
+                        });
+                        list.appendChild(button);
+                    });
+                } else { // 기존 포켓몬 관련 카테고리 (type, grade, team)
+                    const values = [...new Set(window.pokemonData.map(p => p[categoryKey]).flat().filter(Boolean))]; // 여기서는 수량 파싱 필요 없음
                     values.forEach(value => {
                         const button = document.createElement('button');
                         button.className = 'list-item';
@@ -400,6 +446,7 @@
                     renderTipTitles(list, selectedValue); // selectedValue는 팁 카테고리
                 } else { // 기존 포켓몬 관련 카테고리 (type, grade, item, rune, chip, team)
                     let filtered = [];
+                    // 룬/칩/아이템 카테고리는 이제 2단계에서 바로 상세로 가므로, 여기서는 포켓몬 데이터만 처리
                     if (categoryKey === 'rune' || categoryKey === 'chip') {
                          // 룬/칩은 이름만으로 필터링 (예: "전투광 3개" -> "전투광")
                         filtered = window.pokemonData.filter(p => p[categoryKey] && p[categoryKey].some(item => item.split(' ')[0] === selectedValue));
@@ -443,7 +490,7 @@
 
             // 캘린더: 2차 메뉴 - 년도 및 월 목록
             function renderCalendarMonths(list) {
-                const uniqueMonths = [...new Set(window.calendarEvents.map(event => event.date.substring(0, 7)))]; // YYYY-MM 형식
+                const uniqueMonths = [...new Set(window.calendarEvents.map(event => event.date.substring(0, 7)))]; // INSEE-MM 형식
                 uniqueMonths.sort().forEach(month => {
                     const button = document.createElement('button');
                     button.className = 'list-item';
@@ -533,22 +580,37 @@
                 const detail = document.getElementById('details-content');
                 detail.innerHTML = ''; // 기존 내용 비우기
 
+                // 모든 상세 화면에 뒤로가기 버튼 추가
+                const backBtnContainer = document.createElement('div');
+                backBtnContainer.className = 'mb-4';
+                backBtnContainer.appendChild(createBackButton('details', null, null)); // Lev4에서 뒤로가기
+                detail.appendChild(backBtnContainer);
+
+
                 if (itemType === 'pokemon') {
-                    renderPokemonDetails(item);
+                    renderPokemonDetails(item, detail);
                 } else if (itemType === 'calendarEvent') {
-                    renderCalendarEventDetails(item);
+                    renderCalendarEventDetails(item, detail);
                 } else if (itemType === 'tip') {
-                    renderTipDetails(item);
+                    renderTipDetails(item, detail);
+                } else if (itemType === 'itemDetail') { // 아이템 상세
+                    renderItemRuneChipDetails(item, detail, '아이템');
+                } else if (itemType === 'runeDetail') { // 룬 상세
+                    renderItemRuneChipDetails(item, detail, '룬');
+                } else if (itemType === 'chipDetail') { // 칩 상세
+                    renderItemRuneChipDetails(item, detail, '칩');
                 } else {
-                    detail.innerHTML = '<p class="text-red-500 text-center">선택된 항목의 상세 정보를 표시할 수 없습니다.</p>';
+                    const errorMessage = document.createElement('p');
+                    errorMessage.className = 'text-red-500 text-center';
+                    errorMessage.textContent = '선택된 항목의 상세 정보를 표시할 수 없습니다.';
+                    detail.appendChild(errorMessage);
                 }
             }
 
             // --- 각 항목별 상세 정보 렌더링 함수 ---
 
             // 포켓몬 상세 정보 렌더링 (팝업 클릭 기능 추가)
-            function renderPokemonDetails(pokemon) {
-                const detail = document.getElementById('details-content');
+            function renderPokemonDetails(pokemon, detailElement) {
                 
                 let skillsHtml = '';
                 if (pokemon.skills && pokemon.skills.length > 0) {
@@ -571,7 +633,7 @@
 
                 // 아이템 정보 클릭 가능하게 변경 (설명은 팝업으로 이동)
                 let itemHtml = '';
-                if (pokemon.item && window.itemDetails[pokemon.item]) { // data.js 변경으로 window.itemDetails[name] 바로 접근
+                if (pokemon.item && window.itemDetails[pokemon.item]) { 
                     itemHtml = `<h3 class="text-xl font-bold mt-4 mb-2">추천 아이템</h3>
                                 <div class="bg-gray-700 p-3 rounded-lg">
                                     <h4 class="font-semibold text-gray-200 clickable-detail-item" 
@@ -617,7 +679,7 @@
                     chipsHtml += '</div>';
                 }
 
-                detail.innerHTML = `
+                const contentHtml = `
                   <h2 class="text-2xl font-bold mb-4">${pokemon.name}</h2>
                   ${pokemon.image ? `<img src="${pokemon.image}" alt="${pokemon.name}" class="w-full h-48 object-contain mb-4 rounded-lg bg-gray-800 p-2">` : ''}
                   <p class="text-gray-300 italic mb-4">${pokemon.description}</p>
@@ -632,12 +694,12 @@
                   ${runesHtml}
                   ${chipsHtml}
                 `;
+                detailElement.innerHTML += contentHtml; // 기존 뒤로가기 버튼 뒤에 추가
             }
 
             // 캘린더 이벤트 상세 정보 렌더링
-            function renderCalendarEventDetails(event) {
-                const detail = document.getElementById('details-content');
-                detail.innerHTML = `
+            function renderCalendarEventDetails(event, detailElement) {
+                const contentHtml = `
                     <h2 class="text-2xl font-bold mb-4">${event.title}</h2>
                     ${event.imageUrl ? `<img src="${event.imageUrl}" alt="${event.title}" class="w-full h-48 object-contain mb-4 rounded-lg bg-gray-800 p-2">` : ''}
                     <div class="flex gap-2 mb-4">
@@ -647,12 +709,12 @@
                     </div>
                     <p class="text-gray-300 mb-4">${event.description || '상세 내용이 없습니다.'}</p>
                 `;
+                detailElement.innerHTML += contentHtml;
             }
 
             // 팁 & 노하우 상세 정보 렌더링
-            function renderTipDetails(tip) {
-                const detail = document.getElementById('details-content');
-                detail.innerHTML = `
+            function renderTipDetails(tip, detailElement) {
+                const contentHtml = `
                     <h2 class="text-2xl font-bold mb-4">${tip.title}</h2>
                     <div class="flex flex-wrap gap-2 mb-4 text-gray-400 text-sm">
                         ${tip.category ? `<span>카테고리: ${tip.category}</span>` : ''}
@@ -663,7 +725,19 @@
                         ${tip.content || '내용이 없습니다.'}
                     </div>
                 `;
+                detailElement.innerHTML += contentHtml;
             }
+
+            // 아이템/룬/칩 상세 정보 렌더링 (새로 추가)
+            function renderItemRuneChipDetails(detailItem, detailElement, itemCategoryName) {
+                const contentHtml = `
+                    <h2 class="text-2xl font-bold mb-4">${itemCategoryName} - ${detailItem.name}</h2>
+                    ${detailItem.imageUrl ? `<img src="${detailItem.imageUrl}" alt="${detailItem.name}" class="w-full h-48 object-contain mb-4 rounded-lg bg-gray-800 p-2">` : ''}
+                    <p class="text-gray-300 mb-4">${detailItem.description || '상세 설명이 없습니다.'}</p>
+                `;
+                detailElement.innerHTML += contentHtml;
+            }
+
 
             // --- 모달(팝업) 관련 함수 ---
 
