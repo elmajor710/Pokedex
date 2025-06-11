@@ -19,11 +19,35 @@
             overflow-x: hidden;
         }
         /* 메뉴 항목 기본 스타일 */
-        .list-item { @apply flex justify-between items-center w-full px-4 py-3 rounded-lg text-left cursor-pointer font-medium text-gray-200 hover:bg-gray-700; }
+        .list-item { 
+            @apply flex justify-between items-center w-full px-4 py-3 rounded-lg text-left cursor-pointer font-medium text-gray-200 hover:bg-gray-700;
+            position: relative; /* 하단 표시 선을 위해 추가 */
+        }
         /* 1차, 2차 메뉴 활성화 시 스타일 */
         .list-item.active { @apply bg-indigo-700 text-white; }
+        /* 활성화된 메뉴 하단 표시 선 */
+        .list-item.active::after { /* 추가 */
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -6px; /* 하단 간격 조절 */
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background-color: #a78bfa; /* 활성화 색상과 유사하게 */
+        }
         /* 3차 메뉴 활성화 시 스타일 (별도 색상) */
         .list-item.active-lev3 { background-color: #be185d; } /* Tailwind 기본 색상 아님 */
+        .list-item.active-lev3::after { /* 3차 메뉴에도 표시하고 싶다면 추가 */
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -6px;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background-color: #f472b6; /* 활성화 색상과 유사하게 */
+        }
 
         /* 포켓몬 타입별 태그 색상 */
         .tag { @apply inline-block px-3 py-1 rounded-full text-sm font-semibold; }
@@ -49,7 +73,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000; /* 기존 z-50보다 높게 설정 */
+            z-index: 1000;
         }
         .modal-content {
             background-color: #1f2937; /* bg-gray-800 */
@@ -87,6 +111,17 @@
             height: auto;
             margin: 0 auto 1rem; /* 중앙 정렬 및 아래 여백 */
             display: block; /* 블록 요소로 만들어 margin: auto 적용 */
+        }
+        
+        /* 모바일 메뉴 배경색 구분 (lg: 미만) */
+        aside#lev1-list { background-color: #1a202c; } /* bg-gray-900보다 약간 밝게 */
+        aside#lev2-list { background-color: #2d3748; } /* bg-gray-800보다 약간 밝게 */
+        aside#lev3-list { background-color: #4a5568; } /* bg-gray-700보다 약간 밝게 */
+
+        /* 모바일 메뉴 들여쓰기 (lg: 미만) */
+        @media (max-width: 1023px) { /* lg: breakpoint 이하 */
+            #lev2-list .list-item { padding-left: 2rem; } /* 기본 px-4 (1rem)에서 2rem 추가 */
+            #lev3-list .list-item { padding-left: 3rem; } /* 기본 px-4 (1rem)에서 3rem 추가 */
         }
     </style>
 </head>
@@ -146,6 +181,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- 화면 크기 감지 헬퍼 함수 ---
+            const isLargeScreen = () => window.innerWidth >= 1024; // Tailwind의 lg: breakpoint
+
             // data.js 파일이 제대로 로드되었는지 확인합니다.
             if (!window.pokemonData || pokemonData.length === 0) {
                 console.error('data.js 로드 실패 또는 데이터 없음. data.js 파일이 올바른 위치에 있고, window.pokemonData로 시작하는지 확인하세요.');
@@ -172,40 +210,55 @@
             let currentActiveLev3Btn = null;
 
             // --- 화면 분할 레이아웃 관리 함수 ---
+            // 모바일에서 한 단계씩 드릴 다운되도록 로직 변경
             function updateLayout(level) {
-                // 모든 컬럼의 기본 너비 클래스를 제거하고 숨김 처리
-                lev1Col.classList.remove('lg:w-1/4', 'lg:w-1/3', 'lg:w-1/2');
-                lev2Col.classList.remove('lg:w-1/4', 'lg:w-1/3', 'lg:w-1/2');
-                lev3Col.classList.remove('lg:w-1/4', 'lg:w-1/3', 'lg:w-1/2');
-                detailsCol.classList.remove('lg:w-1/4', 'lg:w-1/3', 'lg:w-1/2', 'lg:w-3/4', 'lg:w-2/3');
+                // PC 화면에서는 기존 멀티 컬럼 레이아웃 유지
+                if (isLargeScreen()) {
+                    lev1Col.classList.remove('lg:w-1/4', 'lg:w-1/3', 'lg:w-1/2');
+                    lev2Col.classList.remove('lg:w-1/4', 'lg:w-1/3', 'lg:w-1/2');
+                    lev3Col.classList.remove('lg:w-1/4', 'lg:w-1/3', 'lg:w-1/2');
+                    detailsCol.classList.remove('lg:w-1/4', 'lg:w-1/3', 'lg:w-1/2', 'lg:w-3/4', 'lg:w-2/3');
 
-                lev2Col.classList.add('hidden');
-                lev3Col.classList.add('hidden');
-                detailsCol.classList.add('hidden'); // 일단 모두 숨긴 후 필요한 것만 보이게
+                    lev2Col.classList.add('hidden');
+                    lev3Col.classList.add('hidden');
+                    detailsCol.classList.add('hidden'); 
 
-                if (level === 1) { // 초기화면 또는 최종 선택 후: Lev1 + Details
-                    lev1Col.classList.add('lg:w-1/4'); // Lev1은 고정 너비
-                    detailsCol.classList.remove('hidden'); // Details 보이기
-                    detailsCol.classList.add('lg:w-3/4'); // Details가 나머지 공간 차지 (1/4 + 3/4 = 1)
-                    detailsCol.innerHTML = '<p class="text-gray-400 text-center pt-10">좌측 메뉴에서 항목을 선택하거나, 상단에서 검색하세요.</p>'; // 공란
-                } else if (level === 2) { // Lev1 클릭 후: Lev1 + Lev2 (Details 숨김)
-                    lev1Col.classList.add('lg:w-1/4'); // Lev1 고정
-                    lev2Col.classList.remove('hidden'); // Lev2 보이기
-                    lev2Col.classList.add('lg:w-3/4'); // Lev2가 나머지 공간 차지 (1/4 + 3/4 = 1)
-                    lev3Col.innerHTML = ''; // Lev3 내용 비우기
-                    detailsCol.innerHTML = ''; // Details 내용 비우기
-                } else if (level === 3) { // Lev2 클릭 후: Lev1 + Lev2 + Lev3 (Details 숨김)
-                    lev1Col.classList.add('lg:w-1/4'); // Lev1 고정
-                    lev2Col.classList.remove('hidden'); // Lev2 보이기
-                    lev2Col.classList.add('lg:w-1/4'); // Lev2는 1/4 너비
-                    lev3Col.classList.remove('hidden'); // Lev3 보이기
-                    lev3Col.classList.add('lg:w-2/4'); // Lev3가 나머지 공간 차지 (1/4 + 1/4 + 2/4 = 1)
-                    detailsCol.innerHTML = ''; // Details 내용 비우기
-                } else if (level === 4) { // Lev3에서 최종 항목 선택 후: Lev1 + Details
-                    lev1Col.classList.add('lg:w-1/4'); // Lev1 고정
-                    detailsCol.classList.remove('hidden'); // Details 보이기
-                    detailsCol.classList.add('lg:w-3/4'); // Details가 나머지 공간 차지
-                    // Lev2와 Lev3는 자동으로 hidden 상태 유지
+                    if (level === 1 || level === 4) { // 초기화면 또는 최종 선택 후: Lev1 + Details
+                        lev1Col.classList.add('lg:w-1/4');
+                        detailsCol.classList.remove('hidden');
+                        detailsCol.classList.add('lg:w-3/4');
+                        if (level === 1) detailsCol.innerHTML = '<p class="text-gray-400 text-center pt-10">좌측 메뉴에서 항목을 선택하거나, 상단에서 검색하세요.</p>';
+                    } else if (level === 2) { // Lev1 클릭 후: Lev1 + Lev2 
+                        lev1Col.classList.add('lg:w-1/4');
+                        lev2Col.classList.remove('hidden');
+                        lev2Col.classList.add('lg:w-3/4');
+                        lev3Col.innerHTML = '';
+                        detailsCol.innerHTML = '';
+                    } else if (level === 3) { // Lev2 클릭 후: Lev1 + Lev2 + Lev3
+                        lev1Col.classList.add('lg:w-1/4');
+                        lev2Col.classList.remove('hidden');
+                        lev2Col.classList.add('lg:w-1/4');
+                        lev3Col.classList.remove('hidden');
+                        lev3Col.classList.add('lg:w-2/4');
+                        detailsCol.innerHTML = '';
+                    }
+                } else { // 모바일 화면 (<lg) 에서는 한 컬럼만 보이도록 처리
+                    lev1Col.classList.add('hidden');
+                    lev2Col.classList.add('hidden');
+                    lev3Col.classList.add('hidden');
+                    detailsCol.classList.add('hidden');
+                    
+                    if (level === 1) { // 초기화면: Lev1만 보임
+                        lev1Col.classList.remove('hidden');
+                        detailsCol.classList.remove('hidden'); // 모바일에서도 초기에는 Details 영역은 보이게
+                        detailsCol.innerHTML = '<p class="text-gray-400 text-center pt-10">좌측 메뉴에서 항목을 선택하거나, 상단에서 검색하세요.</p>';
+                    } else if (level === 2) { // Lev1 클릭 후: Lev2만 보임 (Lev1 숨김)
+                        lev2Col.classList.remove('hidden');
+                    } else if (level === 3) { // Lev2 클릭 후: Lev3만 보임 (Lev2 숨김)
+                        lev3Col.classList.remove('hidden');
+                    } else if (level === 4) { // 최종 선택 후: Details만 보임 (모든 메뉴 숨김)
+                        detailsCol.classList.remove('hidden');
+                    }
                 }
                 
                 // 광고를 다시 로드 시도
@@ -230,6 +283,29 @@
 
 
             // --- 메뉴 렌더링 함수들 ---
+
+            // "뒤로 가기" 버튼 생성 함수
+            function createBackButton(targetLevel, currentKey, currentValue) {
+                const button = document.createElement('button');
+                button.className = 'list-item flex items-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg mb-2';
+                button.innerHTML = '<i class="fas fa-chevron-left mr-2"></i><span>뒤로</span>';
+                button.addEventListener('click', () => {
+                    // 현재 활성화된 메뉴 버튼 리셋
+                    if (currentActiveLev2Btn) currentActiveLev2Btn.classList.remove('active');
+                    if (currentActiveLev3Btn) currentActiveLev3Btn.classList.remove('active-lev3');
+
+                    if (targetLevel === 1) { // Lev2에서 Lev1으로
+                        updateLayout(1); // Lev1 + Details 모드
+                        lev2Col.innerHTML = ''; // 현재 2단계 목록 비우기
+                        lev3Col.innerHTML = ''; // 3단계 목록 비우기
+                    } else if (targetLevel === 2) { // Lev3에서 Lev2으로
+                        updateLayout(2); // Lev1 + Lev2 모드
+                        lev3Col.innerHTML = ''; // 현재 3단계 목록 비우기
+                        renderLev2Dispatcher(currentKey); // Lev2 목록 다시 그리기
+                    }
+                });
+                return button;
+            }
 
             // 1차 메뉴 (카테고리) 초기화
             const categories = { 
@@ -272,6 +348,10 @@
             function renderLev2Dispatcher(categoryKey) {
                 const list = document.getElementById('lev2-list');
                 list.innerHTML = ''; // 기존 2차 메뉴 내용 초기화
+                
+                if (!isLargeScreen()) { // 모바일에서는 뒤로가기 버튼 추가
+                    list.appendChild(createBackButton(1, categoryKey));
+                }
 
                 if (categoryKey === 'calendar') {
                     renderCalendarMonths(list);
@@ -279,7 +359,9 @@
                     renderTipCategories(list);
                 } else { // 기존 포켓몬 관련 카테고리
                     // 룬과 칩은 "이름 수량" 형식에서 이름만 추출하여 고유값 만듦
-                    const values = [...new Set(window.pokemonData.map(p => p[categoryKey]).flat().filter(Boolean).map(s => s.split(' ')[0]))];
+                    const values = [...new Set(window.pokemonData.map(p => p[categoryKey]).flat().filter(Boolean).map(s => {
+                        return (categoryKey === 'rune' || categoryKey === 'chip') ? s.split(' ')[0] : s;
+                    }))];
                     values.forEach(value => {
                         const button = document.createElement('button');
                         button.className = 'list-item';
@@ -307,6 +389,10 @@
             function renderLev3Dispatcher(categoryKey, selectedValue) {
                 const list = document.getElementById('lev3-list');
                 list.innerHTML = ''; // 기존 3차 메뉴 내용 초기화
+
+                if (!isLargeScreen()) { // 모바일에서는 뒤로가기 버튼 추가
+                    list.appendChild(createBackButton(2, categoryKey, selectedValue));
+                }
 
                 if (categoryKey === 'calendar') {
                     renderCalendarEventsForMonth(list, selectedValue); // selectedValue는 'YYYY-MM'
@@ -357,7 +443,7 @@
 
             // 캘린더: 2차 메뉴 - 년도 및 월 목록
             function renderCalendarMonths(list) {
-                const uniqueMonths = [...new Set(window.calendarEvents.map(event => event.date.substring(0, 7)))]; // INSEE-MM 형식
+                const uniqueMonths = [...new Set(window.calendarEvents.map(event => event.date.substring(0, 7)))]; // YYYY-MM 형식
                 uniqueMonths.sort().forEach(month => {
                     const button = document.createElement('button');
                     button.className = 'list-item';
