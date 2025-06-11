@@ -21,9 +21,11 @@ window.itemDetails = {
 };
 
 window.runeDetails = {
-    "전투광": {
-        description: "공격 시 입히는 피해량이 증가합니다. 물리 및 특수 공격 모두에 적용됩니다.",
-        imageUrl: "https://via.placeholder.com/100/FF0000/FFFFFF?text=PowerRune" // 예시 이미지 URL
+     "전투광": {
+        description: "공격 룬스톤",
+        description: "3개 공명: PVP 피해 보너스 +8%",
+        description: "6개 공명: 피해 보너스 +8%"
+        imageUrl: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbI8qmg%2FbtsOx9mICsj%2FHPekYM5s0k8xFLHYQoLdG1%2Fimg.png" // 예시 이미지 URL
     },
     "금강": {
         description: "받는 물리 피해량이 감소합니다. 물리 방어 능력을 강화합니다.",
