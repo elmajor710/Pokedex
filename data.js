@@ -137,7 +137,7 @@ window.pokemonData = [
         image: "https://i.namu.wiki/i/22aWwVb_7Qz-u-y-0q8zB2D0Q7g-qJ4n3g8p9e5j1jF6l3g8D7K6s5H4g3F2A1c0B.webp",
         grade: "S+",
         type: ["드래곤", "비행"], // 타입 배열로 변경 (두 개 이상 가능)
-        skills: [{ name: "화룡점정", description: "적 단일 대상에게 250%의 초고속 물리 피해를 입힙니다." }, { name: "델타스트リーム", description: "등장 시 5턴간 날씨를 [난기류] 상태로 만듭니다." }],
+        skills: [{ name: "화룡점정", description: "적 단일 대상에게 250%의 초고속 물리 피해를 입힙니다." }, { name: "델타스트림", description: "등장 시 5턴간 날씨를 [난기류] 상태로 만듭니다." }],
         nature: ["명랑", "고집"],
         build: ["스피드", "공격"],
         item: "생명의구슬",
@@ -166,7 +166,7 @@ window.pokemonData = [
         name: "리자몽",
         image: "https://i.namu.wiki/i/yYn1fX1Qx_S4g7q9X3x7J1a0b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9.webp",
         grade: "S",
-        type: ["불꽃", "비행"],
+        type: ["불꽃", "비행"], // 타입 배열로 변경
         skills: [{ name: "불대문자", description: "적 전체를 불태워 150% 특수 피해를 입힙니다." }],
         nature: ["조심", "온순"],
         build: ["특공", "HP"],
@@ -183,7 +183,7 @@ window.calendarEvents = [
     {
         id: 'cal1',
         title: '신규 한정 뽑기: 전설의 포켓몬 OOO 등장!',
-        type: '한정뽑기',
+        type: '한정뽑기', // 이벤트 타입
         date: '2025-06-20', // YYYY-MM-DD 형식 권장
         time: '12:00',
         description: '강력한 전설의 포켓몬 OOO를 만나볼 수 있는 절호의 기회! 놓치지 마세요.',
@@ -275,31 +275,47 @@ window.tipsAndKnowhow = [
     }
 ];
 
-// 추천 덱 데이터 (새로 추가)
+// 추천 덱 데이터 (새로 추가/수정)
 window.recommendedDeckDetails = {
     "원시가이오가 덱": {
+        name: "원시가이오가 덱", // 덱 이름 추가
+        type: "물", // 덱 타입 추가
         description: "원시가이오가를 중심으로 하는 물 타입 덱입니다. 비오는 날씨 효과를 활용하여 특수 공격과 회복력을 극대화합니다.",
         pokemons: ["원시가이오가", "파르셀", "킹드라"], // 예시 포켓몬 이름
         strategy: "주로 특수 어태커 위주로 구성하며, 스피드를 보강하여 선제 공격을 노립니다. 서포터 포켓몬으로 회복 및 상태 이상 해제를 보조합니다.",
         imageUrl: "https://via.placeholder.com/150/0000FF/FFFFFF?text=KyogreDeck"
     },
     "원시그란돈 덱": {
+        name: "원시그란돈 덱",
+        type: "땅", // 덱 타입 추가
         description: "원시그란돈의 단단한 방어력과 강력한 물리 공격을 활용하는 덱입니다. 날씨 효과로 모래바람을 활용하여 상대방을 압박합니다.",
         pokemons: ["원시그란돈", "랜드로스(영물)", "몰드류"],
         strategy: "물리 어태커 중심으로 구성하며, 고집 또는 용감 성격을 통해 공격력을 극대화합니다. 방어 상성이 좋은 포켓몬을 서브로 활용합니다.",
         imageUrl: "https://via.placeholder.com/150/FF4500/FFFFFF?text=GroudonDeck"
     },
     "메가레쿠쟈 덱": {
+        name: "메가레쿠쟈 덱",
+        type: "드래곤", // 덱 타입 추가
         description: "메가레쿠쟈의 강력한 공격력과 날씨 조작 능력을 활용하는 덱입니다. 빠른 스피드로 전장을 압도합니다.",
         pokemons: ["메가레쿠쟈", "보만다", "아케오스"],
         strategy: "주로 빠른 스피드와 높은 공격력을 가진 포켓몬을 배치하여, 선공으로 적을 제압하는 전략을 사용합니다. 날씨 효과를 통해 유리한 환경을 조성합니다.",
         imageUrl: "https://via.placeholder.com/150/008000/FFFFFF?text=RayquazaDeck"
     },
     "뮤츠 덱": {
+        name: "뮤츠 덱",
+        type: "에스퍼", // 덱 타입 추가
         description: "뮤츠의 압도적인 특수 공격력을 활용하는 덱입니다. 사이코필드를 통해 에스퍼 타입 기술의 위력을 높입니다.",
         pokemons: ["뮤츠", "후딘", "에브이"],
         strategy: "특수 어태커 위주로 구성하며, 스피드와 특수 공격을 극대화합니다. 상태 이상 방어 및 회복 능력을 가진 서포터 포켓몬을 함께 사용합니다.",
         imageUrl: "https://via.placeholder.com/150/9400D3/FFFFFF?text=MewtwoDeck"
+    },
+    "불꽃 덱": { // 새로운 덱 타입 추가
+        name: "강력한 불꽃 덱",
+        type: "불꽃",
+        description: "강력한 불꽃 타입 포켓몬들로 구성된 공격적인 덱입니다. 적을 빠르게 제압하는 데 특화되어 있습니다.",
+        pokemons: ["리자몽", "앤테이", "가디안"],
+        strategy: "주요 불꽃 기술과 강력한 물리/특수 공격으로 적을 압박합니다. 상태 이상 공격으로 추가 피해를 줍니다.",
+        imageUrl: "https://via.placeholder.com/150/FF6347/FFFFFF?text=FireDeck"
     }
 };
 
