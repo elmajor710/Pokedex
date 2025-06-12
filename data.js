@@ -1,6 +1,6 @@
 // data.js
 // 이 파일 내용을 통째로 복사하여 data.js 파일에 붙여넣으세요.
- 
+
 window.itemDetails = {
     "먹다남은 사과": {
         description: "매 턴이 끝날 때마다 최대 HP의 1/16을 회복합니다. 전투 중 지속적인 회복을 통해 안정성을 높여줍니다.",
@@ -21,7 +21,7 @@ window.itemDetails = {
 };
 
 window.runeDetails = {
-     "전투광": {
+    "전투광": {
         description: "공격 룬스톤\n3개 공명: PVP 피해 보너스 +8%\n6개 공명: 피해 보너스 +8%", // 하나의 description 속성에 \n으로 줄바꿈
         imageUrl: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbI8qmg%2FbtsOx9mICsj%2FHPekYM5s0k8xFLHYQoLdG1%2Fimg.png"
     },
@@ -97,7 +97,7 @@ window.pokemonData = [
         name: "원시가이오가",
         image: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2F1QNza%2FbtsOv13War0%2FU5l6ZgHIzXEfdhdFDUFqkk%2Fimg.jpg",
         grade: "SS",
-        type: "물",
+        type: ["물"], // 타입 배열로 변경
         skills: [
             { name: "Active: 물의파동", description: "적 단일 목표를 부딪혀 120% 특수 공격 +96의 특수피해를 입히며, 자신이 2턴 동안 [치명타 저항 증가Ⅲ] 효과를 얻으며, 1명의 팀원에게 [정화Ⅰ]을 사용합니다." },
             { name: "Passive: 근원의바다", parts: [
@@ -112,7 +112,7 @@ window.pokemonData = [
         build: ["특공", "스피드"],
         item: "먹다남은 사과",
         runes: ["전투광 3개", "금강 6개"], // 수량 정보 포함
-        chips: ["귀갑 2개", "뱀 4개"],     // 수량 정보 포함
+        chips: ["귀갑 2개", "뱀 4개"],      // 수량 정보 포함
         team: "원시가이오가 덱",
         description: "가이오가 진정한 힘, 각성 후의 원시적인 모습. 모든 바다를 관장하는 심해의 왕이다."
     },
@@ -121,7 +121,7 @@ window.pokemonData = [
         name: "원시그란돈",
         image: "https://i.namu.wiki/i/7QhXy4nBChsS0R4P_s3C2A9nEgoWqKy5nK7G-K18w6Wc-uV8xPExD5mGZ9zT5S_NqgD5K0vUvj-B7M-Kx9yUoA.webp",
         grade: "SS",
-        type: "땅",
+        type: ["땅"], // 타입 배열로 변경
         skills: [{ name: "단애의칼", description: "적 전체를 공격하여 120% 물리 피해를 입히고, 50% 확률로 대상을 1턴간 [기절]시킵니다." }, { name: "불꽃펀치", description: "적 단일 목표에 180% 물리 피해를 주고 30% 확률로 [화상] 상태로 만듭니다." }],
         nature: ["고집", "용감"],
         build: ["공격", "방어", "체력"],
@@ -136,8 +136,8 @@ window.pokemonData = [
         name: "메가레쿠쟈",
         image: "https://i.namu.wiki/i/22aWwVb_7Qz-u-y-0q8zB2D0Q7g-qJ4n3g8p9e5j1jF6l3g8D7K6s5H4g3F2A1c0B.webp",
         grade: "S+",
-        type: "드래곤",
-        skills: [{ name: "화룡점정", description: "적 단일 대상에게 250%의 초고속 물리 피해를 입힙니다." }, { name: "델타스트ream", description: "등장 시 5턴간 날씨를 [난기류] 상태로 만듭니다." }],
+        type: ["드래곤", "비행"], // 타입 배열로 변경 (두 개 이상 가능)
+        skills: [{ name: "화룡점정", description: "적 단일 대상에게 250%의 초고속 물리 피해를 입힙니다." }, { name: "델타스트リーム", description: "등장 시 5턴간 날씨를 [난기류] 상태로 만듭니다." }],
         nature: ["명랑", "고집"],
         build: ["스피드", "공격"],
         item: "생명의구슬",
@@ -151,7 +151,7 @@ window.pokemonData = [
         name: "뮤츠",
         image: "https://i.namu.wiki/i/5_OU2bUe1w49tJc5akpA9eHeI3k1uHkMy52Zq1u7v9Jb-cM2u-02vX3wVz-j7G3y-CjBqM9e7A_t1q9zX4yRkA.webp",
         grade: "SS",
-        type: "에스퍼",
+        type: ["에스퍼"], // 타입 배열로 변경
         skills: [{ name: "사이코키네시스", description: "강력한 염동력으로 적 전체에게 130% 특수 피해를 줍니다." }, { name: "HP회복", description: "자신의 최대 HP의 50%를 회복합니다." }],
         nature: ["겁쟁이", "조심"],
         build: ["특공", "스피드"],
@@ -160,9 +160,23 @@ window.pokemonData = [
         chips: ["사이코 4개", "보호 2개"],
         team: "뮤츠 덱",
         description: "유전 공학으로 만들어진 궁극의 포켓몬."
+    },
+    {
+        id: 5,
+        name: "리자몽",
+        image: "https://i.namu.wiki/i/yYn1fX1Qx_S4g7q9X3x7J1a0b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9.webp",
+        grade: "S",
+        type: ["불꽃", "비행"],
+        skills: [{ name: "불대문자", description: "적 전체를 불태워 150% 특수 피해를 입힙니다." }],
+        nature: ["조심", "온순"],
+        build: ["특공", "HP"],
+        item: "목탄",
+        runes: ["마력 3개", "지혜 3개"],
+        chips: ["맹공 2개", "철벽 2개"],
+        team: "리자몽 덱",
+        description: "강렬한 불꽃으로 하늘을 지배하는 비행 포켓몬."
     }
 ];
-
 
 // 캘린더 이벤트 데이터 (예시)
 window.calendarEvents = [
@@ -260,3 +274,48 @@ window.tipsAndKnowhow = [
         `
     }
 ];
+
+// 추천 덱 데이터 (새로 추가)
+window.recommendedDeckDetails = {
+    "원시가이오가 덱": {
+        description: "원시가이오가를 중심으로 하는 물 타입 덱입니다. 비오는 날씨 효과를 활용하여 특수 공격과 회복력을 극대화합니다.",
+        pokemons: ["원시가이오가", "파르셀", "킹드라"], // 예시 포켓몬 이름
+        strategy: "주로 특수 어태커 위주로 구성하며, 스피드를 보강하여 선제 공격을 노립니다. 서포터 포켓몬으로 회복 및 상태 이상 해제를 보조합니다.",
+        imageUrl: "https://via.placeholder.com/150/0000FF/FFFFFF?text=KyogreDeck"
+    },
+    "원시그란돈 덱": {
+        description: "원시그란돈의 단단한 방어력과 강력한 물리 공격을 활용하는 덱입니다. 날씨 효과로 모래바람을 활용하여 상대방을 압박합니다.",
+        pokemons: ["원시그란돈", "랜드로스(영물)", "몰드류"],
+        strategy: "물리 어태커 중심으로 구성하며, 고집 또는 용감 성격을 통해 공격력을 극대화합니다. 방어 상성이 좋은 포켓몬을 서브로 활용합니다.",
+        imageUrl: "https://via.placeholder.com/150/FF4500/FFFFFF?text=GroudonDeck"
+    },
+    "메가레쿠쟈 덱": {
+        description: "메가레쿠쟈의 강력한 공격력과 날씨 조작 능력을 활용하는 덱입니다. 빠른 스피드로 전장을 압도합니다.",
+        pokemons: ["메가레쿠쟈", "보만다", "아케오스"],
+        strategy: "주로 빠른 스피드와 높은 공격력을 가진 포켓몬을 배치하여, 선공으로 적을 제압하는 전략을 사용합니다. 날씨 효과를 통해 유리한 환경을 조성합니다.",
+        imageUrl: "https://via.placeholder.com/150/008000/FFFFFF?text=RayquazaDeck"
+    },
+    "뮤츠 덱": {
+        description: "뮤츠의 압도적인 특수 공격력을 활용하는 덱입니다. 사이코필드를 통해 에스퍼 타입 기술의 위력을 높입니다.",
+        pokemons: ["뮤츠", "후딘", "에브이"],
+        strategy: "특수 어태커 위주로 구성하며, 스피드와 특수 공격을 극대화합니다. 상태 이상 방어 및 회복 능력을 가진 서포터 포켓몬을 함께 사용합니다.",
+        imageUrl: "https://via.placeholder.com/150/9400D3/FFFFFF?text=MewtwoDeck"
+    }
+};
+
+// 포켓몬 등급 상세 정보 (단순 설명) - 현재는 사용하지 않음, 등급별 포켓몬 목록 표시용
+window.pokemonGradeDetails = {
+    "SS": {
+        description: "최상위 등급의 포켓몬입니다. 압도적인 능력치와 강력한 스킬을 보유하고 있어, 팀의 핵심 멤버로 활약합니다.",
+        imageUrl: "https://via.placeholder.com/100/FFD700/000000?text=SS"
+    },
+    "S+": {
+        description: "SS 등급에 준하는 강력함을 지닌 포켓몬입니다. 특정 분야에서 뛰어난 성능을 발휘합니다.",
+        imageUrl: "https://via.placeholder.com/100/C0C0C0/000000?text=S+"
+    },
+    "S": {
+        description: "준수한 능력치와 활용성을 가진 포켓몬입니다. 다양한 덱에서 활용될 수 있습니다.",
+        imageUrl: "https://via.placeholder.com/100/CD7F32/000000?text=S"
+    }
+    // 필요한 다른 등급 (A, B 등) 추가 가능
+};
