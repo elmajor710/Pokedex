@@ -137,7 +137,7 @@ window.pokemonData = [
         image: "https://i.namu.wiki/i/22aWwVb_7Qz-u-y-0q8zB2D0Q7g-qJ4n3g8p9e5j1jF6l3g8D7K6s5H4g3F2A1c0B.webp",
         grade: "S+",
         type: ["드래곤", "비행"], // 타입 배열로 변경 (두 개 이상 가능)
-        skills: [{ name: "화룡점정", description: "적 단일 대상에게 250%의 초고속 물리 피해를 입힙니다." }, { name: "델타스트림", description: "등장 시 5턴간 날씨를 [난기류] 상태로 만듭니다." }],
+        skills: [{ name: "화룡점정", description: "적 단일 대상에게 250%의 초고속 물리 피해를 입힙니다." }, { name: "델타스트リーム", description: "등장 시 5턴간 날씨를 [난기류] 상태로 만듭니다." }],
         nature: ["명랑", "고집"],
         build: ["스피드", "공격"],
         item: "생명의구슬",
