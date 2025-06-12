@@ -90,6 +90,9 @@
             gap: 20px;
         }
         @media (max-width: 1024px) { /* Tablet and smaller */
+            .level-container {
+                grid-template-columns: 1fr; /* 모바일에서는 단일 컬럼 */
+            }
             .level-container.toggle-view .level-column.list-view { display: none; }
             .level-container.toggle-view .level-column.detail-view { display: block; }
             .level-container.toggle-view .level-column.detail-view .back-button { display: block; }
@@ -159,14 +162,17 @@
         .detail-content strong {
             color: #3498db;
         }
+        /* Mobile back button visibility handled by JS and media query class */
         .detail-content .back-button {
-            display: none; /* Hidden by default on larger screens */
+            display: none; /* Hidden by default and by media query unless actively set to block via JS */
         }
-        .detail-content .back-button.visible-on-mobile {
-            display: block;
-            margin-top: 20px;
+        .detail-content .pokemon-detail-card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
         }
-
 
         /* Modal Styles */
         .modal {
@@ -220,33 +226,6 @@
             line-height: 1.6;
             margin-bottom: 10px;
         }
-        .pokemon-card {
-            background-color: #f0f2f5;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        .pokemon-card:hover {
-            background-color: #e0e2e5;
-        }
-        .pokemon-card h4 {
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-        .pokemon-card p {
-            font-size: 0.9em;
-            color: #555;
-        }
-        /* Custom styles for specific details display */
-        .pokemon-detail-section {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
     </style>
 </head>
 <body>
@@ -276,18 +255,7 @@
                 <div class="level-column detail-view" id="lv3-detail-pokemon-type">
                     <h3>포켓몬 상세 정보</h3>
                     <div id="pokemon-type-detail-content" class="detail-content pokemon-detail-section">
-                        <img id="pokemon-type-image" src="" alt="포켓몬 이미지" class="hidden">
-                        <h4 id="pokemon-type-title" class="text-xl font-bold mb-2"></h4>
-                        <p id="pokemon-type-description"></p>
-                        <h5 class="text-xl font-bold mb-2">스킬:</h5>
-                        <div id="pokemon-type-skills"></div>
-                        <p><strong>성격:</strong> <span id="pokemon-type-nature"></span></p>
-                        <p><strong>빌드:</strong> <span id="pokemon-type-build"></span></p>
-                        <p><strong>아이템:</strong> <span id="pokemon-type-item"></span></p>
-                        <p><strong>룬:</strong> <span id="pokemon-type-runes"></span></p>
-                        <p><strong>칩:</strong> <span id="pokemon-type-chips"></span></p>
-                        <p><strong>추천 팀:</strong> <span id="pokemon-type-team"></span></p>
-                        <button onclick="backToList('pokemon-type')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 visible-on-mobile">목록으로 돌아가기</button>
+                        <button onclick="backToList('pokemon-type')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
                     </div>
                 </div>
             </div>
@@ -304,18 +272,7 @@
                 <div class="level-column detail-view" id="lv3-detail-pokemon-grade">
                     <h3>포켓몬 상세 정보</h3>
                     <div id="pokemon-grade-detail-content" class="detail-content pokemon-detail-section">
-                        <img id="pokemon-grade-image" src="" alt="포켓몬 이미지" class="hidden">
-                        <h4 id="pokemon-grade-title" class="text-xl font-bold mb-2"></h4>
-                        <p id="pokemon-grade-description"></p>
-                        <h5 class="text-xl font-bold mb-2">스킬:</h5>
-                        <div id="pokemon-grade-skills"></div>
-                        <p><strong>성격:</strong> <span id="pokemon-grade-nature"></span></p>
-                        <p><strong>빌드:</strong> <span id="pokemon-grade-build"></span></p>
-                        <p><strong>아이템:</strong> <span id="pokemon-grade-item"></span></p>
-                        <p><strong>룬:</strong> <span id="pokemon-grade-runes"></span></p>
-                        <p><strong>칩:</strong> <span id="pokemon-grade-chips"></span></p>
-                        <p><strong>추천 팀:</strong> <span id="pokemon-grade-team"></span></p>
-                        <button onclick="backToList('pokemon-grade')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 visible-on-mobile">목록으로 돌아가기</button>
+                        <button onclick="backToList('pokemon-grade')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
                     </div>
                 </div>
             </div>
@@ -335,7 +292,7 @@
                         <img id="item-image" src="" alt="아이템 이미지" class="hidden">
                         <h4 id="item-title" class="text-xl font-bold mb-2"></h4>
                         <p id="item-description"></p>
-                        <button onclick="backToList('item')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 visible-on-mobile">목록으로 돌아가기</button>
+                        <button onclick="backToList('item')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
                     </div>
                 </div>
             </div>
@@ -355,7 +312,7 @@
                         <img id="rune-image" src="" alt="룬 이미지" class="hidden">
                         <h4 id="rune-title" class="text-xl font-bold mb-2"></h4>
                         <p id="rune-description"></p>
-                        <button onclick="backToList('rune')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 visible-on-mobile">목록으로 돌아가기</button>
+                        <button onclick="backToList('rune')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
                     </div>
                 </div>
             </div>
@@ -375,7 +332,7 @@
                         <img id="chip-image" src="" alt="칩 이미지" class="hidden">
                         <h4 id="chip-title" class="text-xl font-bold mb-2"></h4>
                         <p id="chip-description"></p>
-                        <button onclick="backToList('chip')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 visible-on-mobile">목록으로 돌아가기</button>
+                        <button onclick="backToList('chip')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
                     </div>
                 </div>
             </div>
@@ -392,11 +349,12 @@
                 <div class="level-column detail-view" id="lv3-detail-recommended-decks">
                     <h3>상세 정보</h3>
                     <div id="recommended-decks-detail-content" class="detail-content">
+                        <img id="recommended-decks-image" src="" alt="덱 이미지" class="hidden">
                         <h4 id="recommended-decks-title" class="text-xl font-bold mb-2"></h4>
                         <p id="recommended-decks-description"></p>
                         <p><strong>구성 포켓몬:</strong> <span id="recommended-decks-pokemons"></span></p>
                         <p><strong>전략:</strong> <span id="recommended-decks-strategy"></span></p>
-                        <button onclick="backToList('recommended-decks')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 visible-on-mobile">목록으로 돌아가기</button>
+                        <button onclick="backToList('recommended-decks')" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
                     </div>
                 </div>
             </div>
@@ -456,12 +414,15 @@
             // 모든 level-container의 toggle-view 클래스 제거 및 초기화
             document.querySelectorAll('.level-container').forEach(container => {
                 container.classList.remove('toggle-view');
-                container.querySelector('.list-view').style.display = 'block';
-                container.querySelector('.detail-view').style.display = 'none';
+                container.querySelector('.list-view').style.display = 'block'; // 목록 보이게
+                container.querySelector('.detail-view').style.display = 'block'; // 상세도 보이게 (넓은 화면 기본)
+                // 모바일에서는 상세가 숨겨져야 함
+                if (mediaQuery.matches) {
+                    container.querySelector('.detail-view').style.display = 'none';
+                }
             });
 
-
-            // 레벨3 상세 정보 초기화
+            // 레벨3 상세 정보 및 LV2 목록 초기화
             resetAllDetailViews();
             activeLv2ListItem = null; // 활성화된 항목 초기화
 
@@ -485,13 +446,43 @@
             }
         }
 
-        // 모든 상세 정보 뷰 초기화 (숨김)
+        // 모든 상세 정보 뷰 초기화 (요소는 유지하고 내용만 비움)
         function resetAllDetailViews() {
-            document.querySelectorAll('.detail-content').forEach(detail => {
-                detail.innerHTML = ''; // 상세 내용 비우기
+            // 모든 .detail-content 내부의 내용 초기화
+            document.querySelectorAll('.detail-content').forEach(detailContent => {
+                // img, h4, p, span 등 특정 ID를 가진 요소들의 내용을 비움
+                const img = detailContent.querySelector('img');
+                if (img) { img.src = ''; img.alt = ''; img.classList.add('hidden'); }
+                const h4 = detailContent.querySelector('h4');
+                if (h4) h4.textContent = '';
+                const p = detailContent.querySelector('p');
+                if (p) p.textContent = '';
+                const spans = detailContent.querySelectorAll('span'); // 모든 span (성격, 빌드 등)
+                spans.forEach(span => span.textContent = '');
+                const divs = detailContent.querySelectorAll('div[id$="-skills"], div[id$="-info"]'); // 스킬 등 동적 내용
+                divs.forEach(div => div.innerHTML = '');
+
+                // 특정 섹션의 '구성 포켓몬', '전략' 텍스트 초기화
+                const pokemonsSpan = detailContent.querySelector('[id$="-pokemons"]');
+                if (pokemonsSpan) pokemonsSpan.textContent = '';
+                const strategySpan = detailContent.querySelector('[id$="-strategy"]');
+                if (strategySpan) strategySpan.textContent = '';
+
+                // 포켓몬 상세 정보에 사용되는 동적 카드 컨테이너 초기화
+                const pokemonDetailSection = detailContent.closest('.pokemon-detail-section');
+                if (pokemonDetailSection) {
+                    // "목록으로 돌아가기" 버튼을 제외한 모든 자식 노드 제거
+                    Array.from(pokemonDetailSection.children).forEach(child => {
+                        if (!child.classList.contains('back-button')) {
+                            child.remove();
+                        }
+                    });
+                }
             });
+
+            // 모든 레벨2 목록 비우기 (새로 채워질 것이므로)
             document.querySelectorAll('.level-column ul').forEach(ul => {
-                ul.innerHTML = ''; // 모든 레벨2 목록 비우기
+                ul.innerHTML = '';
             });
         }
 
@@ -499,52 +490,45 @@
         function loadDetailsList(type) {
             let dataObject;
             let listElementId;
-            let detailElementId; // 사용하지 않을 수 있음, showDetail에서 처리
-            let defaultImage = '';
+            let defaultImage = ''; // 일반 아이템/룬/칩/덱의 기본 이미지
 
             // 데이터와 DOM ID 매핑
             if (type === 'item') {
                 dataObject = window.itemDetails;
                 listElementId = 'item-list';
-                detailElementId = 'item-detail-content';
                 defaultImage = 'https://via.placeholder.com/100/FF5733/FFFFFF?text=Item';
             } else if (type === 'rune') {
                 dataObject = window.runeDetails;
                 listElementId = 'rune-list';
-                detailElementId = 'rune-detail-content';
                 defaultImage = 'https://via.placeholder.com/100/33FF57/FFFFFF?text=Rune';
             } else if (type === 'chip') {
                 dataObject = window.chipDetails;
                 listElementId = 'chip-list';
-                detailElementId = 'chip-detail-content';
                 defaultImage = 'https://via.placeholder.com/100/3357FF/FFFFFF?text=Chip';
             } else if (type === 'pokemon-type') {
                 // 포켓몬 타입은 특별 처리: 중복 방지를 위해 Set 사용
                 const uniqueTypes = new Set();
                 window.pokemonData.forEach(p => p.type.forEach(t => uniqueTypes.add(t)));
                 dataObject = {};
-                Array.from(uniqueTypes).sort().forEach(t => {
-                    dataObject[t] = { description: `${t} 타입 포켓몬 목록`, imageUrl: `https://via.placeholder.com/100/A020F0/FFFFFF?text=${t.substring(0,4)}` };
+                Array.from(uniqueTypes).sort().forEach(t => { // 타입명으로 정렬
+                    dataObject[t] = { description: `${t} 타입 포켓몬 목록` }; // 이미지 URL은 showDetail에서 직접 가져올 것이므로 필요 없음
                 });
                 listElementId = 'pokemon-type-list';
-                detailElementId = 'pokemon-type-detail-content';
             } else if (type === 'pokemon-grade') {
                 // 포켓몬 등급은 특별 처리: 중복 방지를 위해 Set 사용
                 const uniqueGrades = new Set();
                 window.pokemonData.forEach(p => uniqueGrades.add(p.grade));
                 dataObject = {};
                 Array.from(uniqueGrades).sort((a,b) => { // 등급 순서 정렬
-                    const gradeOrder = {'SS':3, 'S+':2, 'S':1}; // 등급별 순서 정의 (필요시 추가)
-                    return (gradeOrder[b] || 0) - (gradeOrder[a] || 0); // SS > S+ > S
+                    const gradeOrder = {'SS':3, 'S+':2, 'S':1};
+                    return (gradeOrder[b] || 0) - (gradeOrder[a] || 0);
                 }).forEach(g => {
-                    dataObject[g] = { description: `${g} 등급 포켓몬 목록`, imageUrl: `https://via.placeholder.com/100/A020F0/FFFFFF?text=${g}` };
+                    dataObject[g] = { description: `${g} 등급 포켓몬 목록` };
                 });
                 listElementId = 'pokemon-grade-list';
-                detailElementId = 'pokemon-grade-detail-content';
             } else if (type === 'recommended-decks') {
                 dataObject = window.recommendedDeckDetails;
                 listElementId = 'recommended-decks-list';
-                detailElementId = 'recommended-decks-detail-content';
                 defaultImage = 'https://via.placeholder.com/100/FFD700/000000?text=Deck';
             } else {
                 console.error("알 수 없는 타입:", type);
@@ -565,8 +549,17 @@
                 link.href = "#";
                 link.textContent = key;
                 link.onclick = (function(itemName, itemType) {
-                    return function() {
+                    return function(event) {
+                        event.preventDefault(); // 기본 링크 동작 방지
                         showDetail(itemName, itemType);
+
+                        // 활성화된 lv2 항목 스타일링
+                        if (activeLv2ListItem) {
+                            activeLv2ListItem.classList.remove('active');
+                        }
+                        link.classList.add('active');
+                        activeLv2ListItem = link;
+
                         if (mediaQuery.matches) { // 모바일 환경에서만 토글
                             document.getElementById(`${itemType}-level-container`).classList.add('toggle-view');
                             document.getElementById(`lv2-list-${itemType}`).style.display = 'none';
@@ -580,141 +573,159 @@
 
             // 첫 번째 항목의 상세 정보를 기본으로 표시
             if (keys.length > 0) {
-                showDetail(keys[0], type);
-                // 첫 번째 항목을 활성화된 상태로 표시
+                // 첫 번째 항목 클릭 이벤트 수동 실행 (상세 정보 로드 및 활성화 스타일 적용)
                 const firstLink = listUl.querySelector('li a');
                 if (firstLink) {
-                    if (activeLv2ListItem) {
-                        activeLv2ListItem.classList.remove('active');
-                    }
-                    firstLink.classList.add('active');
-                    activeLv2ListItem = firstLink;
+                    firstLink.click(); // showDetail 및 스타일 적용
                 }
             } else {
                 // 목록이 비어있을 경우 상세 내용 초기화
-                const detailContentElement = document.getElementById(detailElementId);
+                const detailContentId = `${type}-detail-content`;
+                const detailContentElement = document.getElementById(detailContentId);
                 if (detailContentElement) {
-                    detailContentElement.innerHTML = `<p>선택할 항목이 없습니다.</p>`;
+                    resetDetailContent(detailContentElement, type); // 내용만 비우고 버튼 유지
+                    const h4 = detailContentElement.querySelector('h4');
+                    if (h4) h4.textContent = '선택할 항목 없음';
+                    const p = detailContentElement.querySelector('p');
+                    if (p) p.textContent = '목록에 항목이 없습니다.';
                 }
             }
         }
 
 
-        // 일반화된 상세 정보 표시 함수
+        // 일반화된 상세 정보 표시 함수 (요소 ID를 직접 사용)
         function showDetail(name, type) {
             let dataObject;
-            let imageElementId;
-            let titleElementId;
-            let descriptionElementId;
-            let detailContainerId; // detail-content가 있는 div ID
-            let pokemonSpecificDetails = false; // 포켓몬 상세 정보인지 여부
+            let detailContainerId;
+            let currentDetailContentElement; // 현재 섹션의 detail-content div
 
+            // 1. 데이터 및 DOM 요소 ID 설정
             if (type === 'item') {
                 dataObject = window.itemDetails;
-                imageElementId = 'item-image';
-                titleElementId = 'item-title';
-                descriptionElementId = 'item-description';
                 detailContainerId = 'item-detail-content';
             } else if (type === 'rune') {
                 dataObject = window.runeDetails;
-                imageElementId = 'rune-image';
-                titleElementId = 'rune-title';
-                descriptionElementId = 'rune-description';
                 detailContainerId = 'rune-detail-content';
             } else if (type === 'chip') {
                 dataObject = window.chipDetails;
-                imageElementId = 'chip-image';
-                titleElementId = 'chip-title';
-                descriptionElementId = 'chip-description';
                 detailContainerId = 'chip-detail-content';
             } else if (type === 'pokemon-type' || type === 'pokemon-grade') {
-                pokemonSpecificDetails = true;
-                // 'name'은 타입 또는 등급 이름, 실제 상세 정보는 pokemonData에서 찾음
-                // 이 함수에서는 해당 타입/등급의 포켓몬 목록을 표시
-                imageElementId = `${type}-image`; // 사용하지 않을 수 있음, 동적으로 생성
-                titleElementId = `${type}-title`; // 사용하지 않을 수 있음
-                descriptionElementId = `${type}-description`; // 사용하지 않을 수 있음
-                detailContainerId = `${type}-detail-content`; // 포켓몬 상세 정보 표시 영역
-                loadPokemonByTypeOrGrade(name, type); // 별도의 함수로 포켓몬 상세 로드
-                return; // 이 함수는 목록만 업데이트하고 리턴
+                // 포켓몬 타입/등급은 loadPokemonByTypeOrGrade가 상세 내용을 채움
+                loadPokemonByTypeOrGrade(name, type);
+                // 모바일 환경에서 상세 보기 모드로 전환
+                if (mediaQuery.matches) {
+                    document.getElementById(`${type}-level-container`).classList.add('toggle-view');
+                }
+                return; // 이 경우 showDetail은 여기서 종료
             } else if (type === 'recommended-decks') {
                 dataObject = window.recommendedDeckDetails;
-                titleElementId = 'recommended-decks-title';
-                descriptionElementId = 'recommended-decks-description';
                 detailContainerId = 'recommended-decks-detail-content';
             } else {
                 console.error("알 수 없는 타입:", type);
                 return;
             }
 
-            // 활성화된 lv2 항목 스타일링
-            if (activeLv2ListItem) {
-                activeLv2ListItem.classList.remove('active');
-            }
-            const currentListId = `${type}-list`;
-            const clickedLink = document.querySelector(`#${currentListId} li a[onclick*="${name}"]`);
-            if (clickedLink) {
-                clickedLink.classList.add('active');
-                activeLv2ListItem = clickedLink;
-            }
-
-            const detailElement = document.getElementById(detailContainerId);
-            if (!detailElement) {
+            currentDetailContentElement = document.getElementById(detailContainerId);
+            if (!currentDetailContentElement) {
                 console.error(`Error: Detail element with ID ${detailContainerId} not found.`);
                 return;
             }
-            // 상세 정보 영역 초기화 (돌아가기 버튼은 유지)
-            detailElement.innerHTML = '';
-            // 돌아가기 버튼을 항상 맨 위에 두기 위해 별도로 관리
-            const backButton = document.createElement('button');
-            backButton.textContent = '목록으로 돌아가기';
-            backButton.className = 'back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 visible-on-mobile';
-            backButton.onclick = function() { backToList(type); };
-            detailElement.appendChild(backButton); // 일단 버튼 추가
 
-            // 일반 상세 정보 (아이템, 룬, 칩, 추천 덱)
+            // 2. 상세 정보 영역 초기화 (버튼을 제외한 나머지 요소들을 초기 상태로)
+            resetDetailContent(currentDetailContentElement, type);
+
+
+            // 3. 데이터 로드 및 표시
             const detail = dataObject[name];
+
             if (detail) {
-                if (imageElementId && document.getElementById(imageElementId)) {
-                    document.getElementById(imageElementId).src = detail.imageUrl || '';
-                    document.getElementById(imageElementId).alt = name + ' 이미지';
-                    document.getElementById(imageElementId).classList.remove('hidden');
-                }
-                if (titleElementId && document.getElementById(titleElementId)) {
-                    document.getElementById(titleElementId).textContent = name;
-                }
-                if (descriptionElementId && document.getElementById(descriptionElementId)) {
-                    document.getElementById(descriptionElementId).innerHTML = detail.description.replace(/\n/g, '<br>'); // 줄바꿈 적용
+                const imgElement = currentDetailContentElement.querySelector('img');
+                const titleElement = currentDetailContentElement.querySelector('h4');
+                const descriptionElement = currentDetailContentElement.querySelector('p');
+
+                if (imgElement && detail.imageUrl) {
+                    imgElement.src = detail.imageUrl;
+                    imgElement.alt = name + ' 이미지';
+                    imgElement.classList.remove('hidden');
+                } else if (imgElement) { // imageUrl이 없는 경우 숨김
+                    imgElement.classList.add('hidden');
                 }
 
-                // 추천 덱 상세 정보 추가 처리
+                if (titleElement) {
+                    titleElement.textContent = name;
+                }
+                if (descriptionElement) {
+                    descriptionElement.innerHTML = detail.description.replace(/\n/g, '<br>');
+                }
+
+                // 추천 덱 추가 정보
                 if (type === 'recommended-decks') {
                     const pokemonsSpan = document.getElementById('recommended-decks-pokemons');
                     const strategySpan = document.getElementById('recommended-decks-strategy');
                     if (pokemonsSpan) pokemonsSpan.textContent = detail.pokemons ? detail.pokemons.join(', ') : '정보 없음';
                     if (strategySpan) strategySpan.textContent = detail.strategy || '정보 없음';
-
-                    // 이미지 요소를 동적으로 만들어서 추가 (추천덱은 data.js에 imageUrl이 없으므로)
-                    const img = document.createElement('img');
-                    img.src = detail.imageUrl || 'https://via.placeholder.com/100/FFD700/000000?text=Deck';
-                    img.alt = name + ' 이미지';
-                    img.className = 'max-w-[150px] h-auto rounded-md mb-4 shadow-md';
-                    detailElement.insertBefore(img, detailElement.querySelector('h4')); // 제목 위에 이미지 삽입
                 }
 
             } else {
-                // 데이터가 없을 경우 초기화
-                const imgElement = detailElement.querySelector('img');
+                // 데이터가 없을 경우 기본 메시지 표시
+                const imgElement = currentDetailContentElement.querySelector('img');
                 if (imgElement) imgElement.classList.add('hidden');
-                const titleElement = detailElement.querySelector('h4');
+                const titleElement = currentDetailContentElement.querySelector('h4');
                 if (titleElement) titleElement.textContent = '선택된 항목 없음';
-                const descElement = detailElement.querySelector('p');
-                if (descElement) descElement.textContent = '항목을 선택하여 상세 정보를 확인하세요.';
+                const descriptionElement = currentDetailContentElement.querySelector('p');
+                if (descriptionElement) descriptionElement.textContent = '항목을 선택하여 상세 정보를 확인하세요.';
             }
 
-            // 모바일 환경에서 상세 보기 모드로 전환
+            // 4. 모바일 환경에서 상세 보기 모드로 전환
             if (mediaQuery.matches) {
                 document.getElementById(`${type}-level-container`).classList.add('toggle-view');
+            }
+        }
+
+        // 상세 정보 컨테이너의 내용을 초기화하는 헬퍼 함수
+        function resetDetailContent(detailContentElement, type) {
+            // 이미지, 제목, 설명, 스킬 등 동적으로 채워지는 요소들을 초기화
+            const img = detailContentElement.querySelector('img');
+            if (img) { img.src = ''; img.alt = ''; img.classList.add('hidden'); }
+            const h4 = detailContentElement.querySelector('h4');
+            if (h4) h4.textContent = '';
+            const p = detailContentElement.querySelector('p');
+            if (p) p.textContent = '';
+
+            // 포켓몬 상세 정보 관련 span/div 초기화
+            if (type === 'pokemon-type' || type === 'pokemon-grade') {
+                const pokemonSkillsDiv = detailContentElement.querySelector('[id$="-skills"]');
+                if (pokemonSkillsDiv) pokemonSkillsDiv.innerHTML = '';
+                const natureSpan = detailContentElement.querySelector('[id$="-nature"]');
+                if (natureSpan) natureSpan.textContent = '';
+                const buildSpan = detailContentElement.querySelector('[id$="-build"]');
+                if (buildSpan) buildSpan.textContent = '';
+                const itemSpan = detailContentElement.querySelector('[id$="-item"]');
+                if (itemSpan) itemSpan.textContent = '';
+                const runesSpan = detailContentElement.querySelector('[id$="-runes"]');
+                if (runesSpan) runesSpan.textContent = '';
+                const chipsSpan = detailContentElement.querySelector('[id$="-chips"]');
+                if (chipsSpan) chipsSpan.textContent = '';
+                const teamSpan = detailContentElement.querySelector('[id$="-team"]');
+                if (teamSpan) teamSpan.textContent = '';
+
+                // 동적으로 추가된 pokemon-detail-card 요소들 제거 (버튼 제외)
+                Array.from(detailContentElement.children).forEach(child => {
+                    if (child.classList.contains('pokemon-detail-card') || (child.tagName === 'H3' && child.textContent.includes('타입' || '등급'))) {
+                        child.remove();
+                    }
+                });
+            } else if (type === 'recommended-decks') {
+                const pokemonsSpan = detailContentElement.querySelector('[id$="-pokemons"]');
+                if (pokemonsSpan) pokemonsSpan.textContent = '';
+                const strategySpan = detailContentElement.querySelector('[id$="-strategy"]');
+                if (strategySpan) strategySpan.textContent = '';
+            }
+
+            // 돌아가기 버튼 보이게 설정 (미디어 쿼리가 처리)
+            const backButton = detailContentElement.querySelector('.back-button');
+            if (backButton) {
+                backButton.style.display = ''; // CSS가 처리하도록 놔둠
             }
         }
 
@@ -728,12 +739,15 @@
                 return;
             }
 
-            detailElement.innerHTML = ''; // 기존 내용 비우기 (버튼 제외)
-            const backButton = document.createElement('button');
-            backButton.textContent = '목록으로 돌아가기';
-            backButton.className = 'back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 visible-on-mobile';
-            backButton.onclick = function() { backToList(type); };
-            detailElement.appendChild(backButton); // 돌아가기 버튼 다시 추가
+            // 초기화 (버튼 제외)
+            resetDetailContent(detailElement, type);
+
+            // 제목 추가
+            const titleElement = document.createElement('h3');
+            titleElement.className = 'text-xl font-bold mb-4';
+            titleElement.textContent = `${filterValue} ${type === 'pokemon-type' ? '타입' : '등급'} 포켓몬`;
+            detailElement.insertBefore(titleElement, detailElement.querySelector('.back-button') ? detailElement.querySelector('.back-button').nextSibling : null);
+
 
             const filteredPokemons = window.pokemonData.filter(pokemon => {
                 if (type === 'pokemon-type') {
@@ -745,11 +759,11 @@
             });
 
             if (filteredPokemons.length === 0) {
-                detailElement.innerHTML += `<p>해당 ${filterValue}에 해당하는 포켓몬이 없습니다.</p>`;
+                const noPokemonP = document.createElement('p');
+                noPokemonP.textContent = `해당 ${filterValue}에 해당하는 포켓몬이 없습니다.`;
+                detailElement.appendChild(noPokemonP);
                 return;
             }
-
-            detailElement.innerHTML += `<h3 class="text-xl font-bold mb-4">${filterValue} ${type === 'pokemon-type' ? '타입' : '등급'} 포켓몬</h3>`;
 
             filteredPokemons.forEach(pokemon => {
                 let skillsHtml = '';
@@ -763,7 +777,7 @@
                 });
 
                 const pokemonDetailHtml = `
-                    <div class="pokemon-detail-card bg-white p-4 rounded-lg shadow-md mb-4">
+                    <div class="pokemon-detail-card">
                         <div class="flex items-center space-x-4 mb-4">
                             <img src="${pokemon.image || 'https://via.placeholder.com/100/CCCCCC/FFFFFF?text=No+Image'}" alt="${pokemon.name}" class="w-24 h-24 object-cover rounded-full shadow-md">
                             <div>
@@ -798,19 +812,6 @@
             document.getElementById(`${type}-level-container`).classList.remove('toggle-view');
             document.getElementById(`lv2-list-${type}`).style.display = 'block';
             document.getElementById(`lv3-detail-${type}`).style.display = 'none';
-
-            // 상세 내용 초기화
-            const detailContainerId = `${type}-detail-content`;
-            const detailElement = document.getElementById(detailContainerId);
-            if (detailElement) {
-                // 이전 상세정보가 남아있지 않도록 비움 (버튼 제외)
-                detailElement.innerHTML = '';
-                const backButton = document.createElement('button');
-                backButton.textContent = '목록으로 돌아가기';
-                backButton.className = 'back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 visible-on-mobile';
-                backButton.onclick = function() { backToList(type); };
-                detailElement.appendChild(backButton);
-            }
 
             // 활성화된 lv2 항목 선택 해제
             if (activeLv2ListItem) {
@@ -883,9 +884,17 @@
                 // 현재 활성화된 섹션이 목록-상세 구조이고 상세가 열려있다면 토글 뷰 적용
                 const currentSectionId = activeSectionId.replace('-section', '');
                 const levelContainer = document.getElementById(`${currentSectionId}-level-container`);
-                if (levelContainer && levelContainer.classList.contains('toggle-view')) {
-                     levelContainer.querySelector('.list-view').style.display = 'none';
-                     levelContainer.querySelector('.detail-view').style.display = 'block';
+                if (levelContainer) {
+                    const detailView = levelContainer.querySelector('.detail-view');
+                    const listView = levelContainer.querySelector('.list-view');
+
+                    if (levelContainer.classList.contains('toggle-view')) {
+                        listView.style.display = 'none';
+                        detailView.style.display = 'block';
+                    } else { // 넓은 화면이었다가 좁아지면 목록부터 보이게
+                        listView.style.display = 'block';
+                        detailView.style.display = 'none';
+                    }
                 }
             } else { // 화면이 넓으면
                 // 모든 level-container의 toggle-view 클래스 제거 및 원래대로 복원
