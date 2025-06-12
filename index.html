@@ -102,6 +102,7 @@
             min-height: 400px;
             overflow-y: auto;
             flex-shrink: 0;
+            display: none; /* Default hidden, controlled by JS */
         }
         .main-list-column {
             width: 35%; /* PC: 목록 컬럼 너비 */
@@ -109,6 +110,12 @@
         .main-detail-column {
             width: 65%; /* PC: 상세 컬럼 너비 */
         }
+        /* PC에서는 기본적으로 메인 콘텐츠 섹션이 활성화되면 두 컬럼 모두 보임 */
+        .content-section.active .main-list-column,
+        .content-section.active .main-detail-column {
+            display: block;
+        }
+
         .main-list-column h3, .main-detail-column h3 {
             font-size: 1.5em;
             margin-bottom: 15px;
@@ -278,7 +285,7 @@
                 width: 100%;
             }
             .main-list-column, .main-detail-column {
-                width: 100%; /* 모바일에서는 전체 너비 */
+                width: 100%;
                 min-height: auto;
             }
             /* 모바일에서만 작동하는 표시/숨김 */
@@ -294,6 +301,8 @@
     </style>
 </head>
 <body>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2125965839205311" crossorigin="anonymous"></script>
+
     <div class="sidebar">
         <h2>포켓몬 도감</h2>
         <ul>
@@ -353,8 +362,8 @@
     <script src="data.js"></script>
     <script>
         // 전역 변수들
-        let currentActiveSectionId = 'initial-blank-section'; // 현재 활성화된 content-section의 ID
-        let currentDetailLevel = 'initial'; // 현재 표시되는 상세 화면의 레벨: 'initial', 'list', 'detail', 'pokemon-list', 'pokemon-detail'
+        let currentActiveSectionType = 'initial-blank-section'; // 현재 활성화된 content-section의 type (예: 'pokemon-type')
+        let currentDisplayLevel = 'initial'; // 현재 표시되는 상세 화면의 레벨: 'initial', 'list', 'detail' (Lev.3/4)
         let navigationStack = []; // 모바일 뒤로가기 관리를 위한 스택
 
         const mediaQuery = window.matchMedia('(max-width: 1024px)');
@@ -366,20 +375,17 @@
         const mainDetailColumn = document.getElementById('main-detail-column');
         const dynamicContentSection = document.getElementById('dynamic-content-section');
         const initialBlankSection = document.getElementById('initial-blank-section');
-        const sectionTitle = document.getElementById('section-title');
+        const sectionTitleElement = document.getElementById('section-title');
 
         // --- 핵심 로직: 섹션 전환 및 콘텐츠 렌더링 ---
 
         // Lev.1 카테고리 클릭 시 호출
         function showSection(sectionType, clickedElement) {
             // 모든 섹션 숨기기
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            initialBlankSection.classList.remove('active'); // 초기 공란 섹션도 숨김
-
+            initialBlankSection.classList.remove('active');
             dynamicContentSection.classList.add('active'); // 동적 콘텐츠 섹션 활성화
-            sectionTitle.textContent = getSectionTitle(sectionType); // 섹션 제목 설정
+
+            sectionTitleElement.textContent = getSectionTitle(sectionType); // 섹션 제목 설정
 
             // 사이드바 링크 활성화 스타일 변경
             document.querySelectorAll('.sidebar ul li a').forEach(link => {
@@ -387,11 +393,11 @@
             });
             clickedElement.classList.add('active');
 
-            currentActiveSectionId = sectionType; // 현재 활성 섹션 ID 업데이트
+            currentActiveSectionType = sectionType; // 현재 활성 섹션 타입 업데이트
             navigationStack = []; // 새 섹션 시작 시 스택 초기화
 
             // 초기 로드: Lev.2 목록과 상세 (PC) 또는 Lev.2 목록만 (모바일)
-            showContentColumns('list');
+            showContentColumns('list', { forceRender: true }); // forceRender: 첫 로드 시 항상 렌더링
 
             // 각 섹션에 맞는 초기 목록 로드
             if (sectionType === 'pokemon-type') {
@@ -412,49 +418,45 @@
                 renderTipsAndKnowhowList();
             }
 
-            showAd(); // 광고 새로고침
+            // 광고 새로고침
+            showAd();
         }
 
         // --- 컬럼 표시 관리 헬퍼 함수 ---
-        // 'list'는 Lev.2 목록, 'detail'은 Lev.3/Lev.4 상세, 'pokemon-list'는 Lev.3 포켓몬 목록
+        // levelState: 'list' (Lev.2 목록), 'pokemon-names' (Lev.3 포켓몬 이름 목록), 'detail' (Lev.3 일반 상세), 'pokemon-final-detail' (Lev.4 포켓몬 최종 상세)
         function showContentColumns(levelState, options = {}) {
-            mainListColumn.innerHTML = ''; // 항상 목록 컬럼 초기화
-            mainDetailColumn.innerHTML = ''; // 항상 상세 컬럼 초기화
+            // PC: main-list-column (Lev.2) 항상 보임. main-detail-column (Lev.3/4)도 항상 보임.
+            // Mobile: levelState에 따라 main-list-column 또는 main-detail-column 중 하나만 보임.
 
-            // 스택에 현재 상태 추가
-            // (levelState, dataNeededForBack, etc.)
-            // 이 부분을 좀 더 정교하게 스택에 넣고, `back()`에서 해당 데이터를 바탕으로 이전 뷰를 재구성해야 합니다.
-            // 복잡해지면 스택에 함수 자체를 넣어 콜백 형태로 만드는 것도 가능.
-            // 여기서는 단순화된 스택으로, 백 버튼이 호출될 때 현재 섹션ID와 직전 levelState를 기록하는 방식으로.
-            navigationStack.push({ level: levelState, type: currentActiveSectionId, filterValue: options.filterValue, pokemonId: options.pokemonId });
-
+            // 현재 스택에 동일한 상태가 있으면 추가하지 않음 (뒤로가기 시 중복 방지)
+            const lastState = navigationStack[navigationStack.length - 1];
+            if (!options.forceRender && lastState && lastState.level === levelState && lastState.type === options.type && lastState.filterValue === options.filterValue && lastState.pokemonId === options.pokemonId) {
+                return;
+            }
+            navigationStack.push({ level: levelState, type: options.type, filterValue: options.filterValue, pokemonId: options.pokemonId });
+            currentDisplayLevel = levelState;
 
             if (mediaQuery.matches) { // 모바일 환경
-                // 모든 컬럼 숨김 (기본)
-                mainListColumn.classList.remove('mobile-active');
-                mainListColumn.classList.add('mobile-hidden');
-                mainDetailColumn.classList.remove('mobile-active');
-                mainDetailColumn.classList.add('mobile-hidden');
-
-                if (levelState === 'list' || levelState === 'pokemon-list') {
+                if (levelState === 'list') { // Lev.2 목록
                     mainListColumn.classList.remove('mobile-hidden');
                     mainListColumn.classList.add('mobile-active');
-                } else if (levelState === 'detail' || levelState === 'pokemon-detail') {
+                    mainDetailColumn.classList.remove('mobile-active');
+                    mainDetailColumn.classList.add('mobile-hidden');
+                } else { // Lev.3/Lev.4 상세 (포켓몬 이름 목록, 아이템 상세, 포켓몬 최종 상세 등)
+                    mainListColumn.classList.remove('mobile-active');
+                    mainListColumn.classList.add('mobile-hidden');
                     mainDetailColumn.classList.remove('mobile-hidden');
                     mainDetailColumn.classList.add('mobile-active');
                 }
             } else { // PC 환경
-                mainListColumn.classList.remove('mobile-hidden', 'mobile-active');
-                mainDetailColumn.classList.remove('mobile-hidden', 'mobile-active');
-
                 // PC는 기본적으로 2분할 (목록 + 상세)
-                if (levelState === 'list' || levelState === 'pokemon-list') {
-                    mainListColumn.style.display = 'block';
-                    mainDetailColumn.style.display = 'block';
-                } else if (levelState === 'detail' || levelState === 'pokemon-detail') {
-                    mainListColumn.style.display = 'block'; // PC에서는 항상 목록도 보임
-                    mainDetailColumn.style.display = 'block';
-                }
+                mainListColumn.style.display = 'block';
+                mainDetailColumn.style.display = 'block';
+
+                // "목록으로 돌아가기" 버튼은 PC에서 기본적으로 숨김
+                document.querySelectorAll('.main-detail-column .back-button').forEach(btn => {
+                    btn.style.display = 'none';
+                });
             }
         }
 
@@ -493,13 +495,13 @@
                     // Lev.3: 해당 타입/등급의 포켓몬 이름 목록 표시
                     renderPokemonNamesForTypeOrGrade(item, sectionType);
                     setActiveListItem(link);
-                    showContentColumns('pokemon-list', { filterValue: item, type: sectionType }); // PC: Lev.2+Lev.3, Mobile: Lev.3만
+                    showContentColumns('pokemon-names', { type: sectionType, filterValue: item });
                 };
                 listItem.appendChild(link);
                 listUl.appendChild(listItem);
             });
 
-            // 첫 번째 항목 자동 클릭 (초기 로드 시 상세 표시)
+            // 첫 번째 항목 자동 클릭
             if (dataList.length > 0) {
                 listUl.querySelector('li a').click();
             }
@@ -525,7 +527,7 @@
                     // Lev.3: 상세 정보 표시
                     window[detailFunction](key, type); // 동적으로 함수 호출
                     setActiveListItem(link);
-                    showContentColumns('detail', { name: key, type: type }); // PC: Lev.2+Lev.3, Mobile: Lev.3만
+                    showContentColumns('detail', { type: type, name: key });
                 };
                 listItem.appendChild(link);
                 listUl.appendChild(listItem);
@@ -559,7 +561,7 @@
                     // Lev.3: 해당 타입의 덱 상세 표시 (현재는 첫 번째 덱)
                     showRecommendedDeckDetail(type);
                     setActiveListItem(link);
-                    showContentColumns('detail', { type: type, filterValue: type }); // PC: Lev.2+Lev.3, Mobile: Lev.3만
+                    showContentColumns('detail', { type: 'recommended-decks', filterValue: type });
                 };
                 listItem.appendChild(link);
                 listUl.appendChild(listItem);
@@ -589,7 +591,7 @@
                     // Lev.3: 해당 타입의 이벤트 일정 표시
                     showCalendarEventsByType(type);
                     setActiveListItem(link);
-                    showContentColumns('detail', { type: type, filterValue: type }); // PC: Lev.2+Lev.3, Mobile: Lev.3만
+                    showContentColumns('detail', { type: 'calendar', filterValue: type });
                 };
                 listItem.appendChild(link);
                 listUl.appendChild(listItem);
@@ -615,7 +617,7 @@
                     // Lev.3: 글 내용 표시
                     showTipDetail(tip.id);
                     setActiveListItem(link);
-                    showContentColumns('detail', { type: 'tips-knowhow', id: tip.id }); // PC: Lev.2+Lev.3, Mobile: Lev.3만
+                    showContentColumns('detail', { type: 'tips-knowhow', id: tip.id });
                 };
                 listItem.appendChild(link);
                 listUl.appendChild(listItem);
@@ -629,9 +631,13 @@
 
         // --- Lev.3/Lev.4 상세/목록 렌더링 함수들 ---
 
-        // Lev.3: 타입/등급에 따른 포켓몬 이름 목록 렌더링 (PC에서 Lev.2 옆에 표시, 모바일에서 Lev.2 대체)
+        // Lev.3: 타입/등급에 따른 포켓몬 이름 목록 렌더링 (main-detail-column에)
         function renderPokemonNamesForTypeOrGrade(filterValue, sectionType) {
-            mainDetailColumn.innerHTML = `<h3>${filterValue} ${sectionType === 'pokemon-type' ? '타입' : '등급'} 포켓몬</h3><ul id="pokemon-filtered-list"></ul><button onclick="backFromPokemonList()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>`;
+            mainDetailColumn.innerHTML = `
+                <h3>${filterValue} ${sectionType === 'pokemon-type' ? '타입' : '등급'} 포켓몬</h3>
+                <ul id="pokemon-filtered-list"></ul>
+                <button onclick="backFromPokemonList()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
+            `;
             const listUl = document.getElementById('pokemon-filtered-list');
 
             const filteredPokemons = window.pokemonData.filter(p => {
@@ -658,19 +664,24 @@
                         // Lev.4: 포켓몬 최종 상세 렌더링
                         renderPokemonFinalDetail(pokemon.id, sectionType);
                         setActiveListItem(link);
-                        showContentColumns('pokemon-detail', { pokemonId: pokemon.id, type: sectionType }); // PC: Lev.2+Lev.4, Mobile: Lev.4만
+                        showContentColumns('pokemon-final-detail', { type: sectionType, filterValue: filterValue, pokemonId: pokemon.id });
                     };
                     listItem.appendChild(link);
                     listUl.appendChild(listItem);
                 });
-                // 첫 번째 포켓몬 상세 정보 자동 클릭 (PC: 3분할 대신 2분할, Lev.2+Lev.4)
+                // 첫 번째 포켓몬 상세 정보 자동 클릭 (PC에서 Lev.3 목록이 보인 상태에서 Lev.4 상세를 대체함)
                 if (listUl.querySelector('li a')) {
                     listUl.querySelector('li a').click();
                 }
             }
+
+            // PC에서는 돌아가기 버튼 숨김
+            if (!mediaQuery.matches) {
+                mainDetailColumn.querySelector('.back-button').style.display = 'none';
+            }
         }
 
-        // Lev.3: 아이템/룬/칩 상세 렌더링 (PC에서 Lev.2 옆에 표시, 모바일에서 Lev.2 대체)
+        // Lev.3: 아이템/룬/칩 상세 렌더링 (main-detail-column에)
         function showItemRuneChipDetail(name, type) {
             const detail = (type === 'item' ? window.itemDetails : type === 'rune' ? window.runeDetails : window.chipDetails)[name];
 
@@ -689,13 +700,13 @@
             }
         }
 
-        // Lev.3: 추천 덱 상세 렌더링 (PC에서 Lev.2 옆에 표시, 모바일에서 Lev.2 대체)
-        function showRecommendedDeckDetail(deckType) {
+        // Lev.3: 추천 덱 상세 렌더링 (main-detail-column에)
+        function showRecommendedDeckDetail(deckTypeFilter) {
             let decksToDisplay = [];
-            if (deckType === '전체 덱') {
+            if (deckTypeFilter === '전체 덱') {
                 decksToDisplay = Object.values(window.recommendedDeckDetails);
             } else {
-                decksToDisplay = Object.values(window.recommendedDeckDetails).filter(deck => deck.type === deckType);
+                decksToDisplay = Object.values(window.recommendedDeckDetails).filter(deck => deck.type === deckTypeFilter);
             }
 
             // 요청에 따라 첫 번째 덱만 보여주거나, 모든 덱을 나열할 수 있음.
@@ -729,7 +740,7 @@
             }
         }
 
-        // Lev.3: 캘린더 이벤트 상세 렌더링 (PC에서 Lev.2 옆에 표시, 모바일에서 Lev.2 대체)
+        // Lev.3: 캘린더 이벤트 상세 렌더링 (main-detail-column에)
         function showCalendarEventsByType(eventType) {
             const filteredEvents = window.calendarEvents.filter(event => event.type === eventType);
 
@@ -756,7 +767,7 @@
             }
         }
 
-        // Lev.3: 팁 & 노하우 상세 렌더링 (PC에서 Lev.2 옆에 표시, 모바일에서 Lev.2 대체)
+        // Lev.3: 팁 & 노하우 상세 렌더링 (main-detail-column에)
         function showTipDetail(tipId) {
             const tip = window.tipsAndKnowhow.find(t => t.id === tipId);
 
@@ -783,7 +794,7 @@
             }
         }
 
-        // Lev.4: 포켓몬 최종 상세 렌더링 (PC에서 Lev.2 옆에 표시, Lev.3 포켓몬 목록 대체)
+        // Lev.4: 포켓몬 최종 상세 렌더링 (main-detail-column에)
         function renderPokemonFinalDetail(pokemonId, sectionType) {
             const pokemon = window.pokemonData.find(p => p.id === pokemonId);
             if (!pokemon) {
@@ -824,7 +835,7 @@
                 </div>
                 <button onclick="backFromPokemonDetail()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">이전으로 돌아가기</button>
             `;
-            // PC에서는 돌아가기 버튼 숨김 (PC에서 LV4가 LV3를 대체하므로, LV3로 돌아가기 버튼이 필요)
+            // PC에서는 돌아가기 버튼 숨김
             if (!mediaQuery.matches) {
                 mainDetailColumn.querySelector('.back-button').style.display = 'none';
             }
@@ -834,11 +845,11 @@
         // --- 뒤로가기 버튼 로직 (내비게이션 스택 활용) ---
 
         function backFromDetail() { // 일반 섹션: Lev.3 상세 -> Lev.2 목록
-            if (navigationStack.length > 1) {
+            if (navigationStack.length > 1) { // 현재 상태 포함 최소 2개 이상 (list -> detail)
                 navigationStack.pop(); // 현재(detail) 상태 제거
-                const prevState = navigationStack[navigationStack.length - 1]; // 이전 상태
+                const prevState = navigationStack.pop(); // 이전 상태 (list)
 
-                showContentColumns('list'); // 목록 컬럼 활성화
+                // 이전 상태 복원
                 if (prevState.type === 'item') {
                     renderGenericList('item', window.itemDetails, 'showItemRuneChipDetail');
                 } else if (prevState.type === 'rune') {
@@ -852,37 +863,29 @@
                 } else if (prevState.type === 'tips-knowhow') {
                     renderTipsAndKnowhowList();
                 }
-            } else {
-                // 더 이상 뒤로 갈 수 없을 때 (최초 목록 상태에서 뒤로가기 시도)
-                // 현재 섹션의 Lev.2 목록을 다시 렌더링하여 초기화 효과
-                showSection(currentActiveSectionId, document.querySelector(`.sidebar ul li a[onclick*="${currentActiveSectionId}"]`));
+                showContentColumns('list', prevState); // 다시 list 상태로 전환
             }
         }
 
         function backFromPokemonList() { // 포켓몬 섹션: Lev.3 포켓몬 목록 -> Lev.2 타입/등급 목록
-            if (navigationStack.length > 1) {
-                navigationStack.pop(); // 현재(pokemon-list) 상태 제거
-                const prevState = navigationStack[navigationStack.length - 1]; // 이전(list) 상태
+            if (navigationStack.length > 1) { // 현재 상태 포함 최소 2개 이상 (list -> pokemon-names)
+                navigationStack.pop(); // 현재(pokemon-names) 상태 제거
+                const prevState = navigationStack.pop(); // 이전 상태 (list)
 
-                showContentColumns('list'); // 목록 컬럼 활성화
+                showContentColumns('list', prevState); // list 상태로 전환
                 renderPokemonTypeOrGradeList(prevState.type);
-            } else {
-                showSection(currentActiveSectionId, document.querySelector(`.sidebar ul li a[onclick*="${currentActiveSectionId}"]`));
             }
         }
 
         function backFromPokemonDetail() { // 포켓몬 섹션: Lev.4 포켓몬 상세 -> Lev.3 포켓몬 이름 목록
-            if (navigationStack.length > 1) {
-                navigationStack.pop(); // 현재(pokemon-detail) 상태 제거
-                const prevState = navigationStack[navigationStack.length - 1]; // 이전(pokemon-list) 상태
+            if (navigationStack.length > 1) { // 현재 상태 포함 최소 2개 이상 (pokemon-names -> pokemon-final-detail)
+                navigationStack.pop(); // 현재(pokemon-final-detail) 상태 제거
+                const prevState = navigationStack.pop(); // 이전 상태 (pokemon-names)
 
-                showContentColumns('pokemon-list'); // Lev.3 포켓몬 목록 활성화
+                showContentColumns('pokemon-names', prevState); // pokemon-names 상태로 전환
                 renderPokemonNamesForTypeOrGrade(prevState.filterValue, prevState.type);
-            } else {
-                showSection(currentActiveSectionId, document.querySelector(`.sidebar ul li a[onclick*="${currentActiveSectionId}"]`));
             }
         }
-
 
         // --- 유틸리티 함수들 ---
 
@@ -900,12 +903,14 @@
             return titles[sectionType] || '정보';
         }
 
+        let activeListItem = null; // 활성 목록 항목을 추적하기 위한 전역 변수
+
         function setActiveListItem(linkElement) {
-            if (activeLv2ListItem) {
-                activeLv2ListItem.classList.remove('active');
+            if (activeListItem) {
+                activeListItem.classList.remove('active');
             }
             linkElement.classList.add('active');
-            activeLv2ListItem = linkElement;
+            activeListItem = linkElement;
         }
 
         // 모달 열기 (아이템/룬/칩 팝업)
@@ -979,6 +984,7 @@
         function showAd() {
             const adsContainer = document.getElementById('top-ad-container');
             if (adsContainer) {
+                // 기존 광고를 제거하고 새로운 광고를 요청
                 adsContainer.innerHTML = `
                     <ins class="adsbygoogle"
                          style="display:block; text-align:center;"
@@ -987,17 +993,19 @@
                          data-ad-format="auto"
                          data-full-width-responsive="true"></ins>
                 `;
-
+                
+                // Google Adsense 라이브러리가 로드되었는지 확인 후 광고 푸시
                 if (typeof (adsbygoogle) !== 'undefined' && Array.isArray(window.adsbygoogle) && window.adsbygoogle.length > 0) {
                     (adsbygoogle = window.adsbygoogle || []).push({});
                     console.log("AdSense 광고 요청 푸시 완료.");
-                    adRetryCount = 0;
+                    adRetryCount = 0; // 성공 시 재시도 카운트 초기화
                 } else if (adRetryCount < maxAdRetries) {
+                    console.warn(`AdSense 라이브러리가 아직 로드되지 않았거나 배열이 비어있습니다. ${adRetryCount + 1}/${maxAdRetries} 재시도합니다.`);
                     adRetryCount++;
                     setTimeout(showAd, 500); // 0.5초 후 재시도
                 } else {
                     console.error("AdSense 광고 로드 실패: 최대 재시도 횟수 초과.");
-                    adRetryCount = 0;
+                    adRetryCount = 0; // 카운트 초기화
                 }
             }
         }
@@ -1011,28 +1019,22 @@
             initialBlankSection.classList.add('active');
             showAd(); // 초기 광고 로드
 
-            // 초기 로드 시 미디어 쿼리 상태에 따라 컬럼 초기화
-            handleMediaQueryChange(mediaQuery);
+            // 미디어 쿼리 변경 감지 리스너 등록
+            mediaQuery.addListener(handleMediaQueryChange);
         });
 
         // 미디어 쿼리 변경 감지 (PC <-> 모바일 전환 시)
         function handleMediaQueryChange(e) {
-            // 현재 활성 섹션이 동적 섹션일 경우에만 처리
-            if (currentActiveSectionId !== 'initial-blank-section') {
-                // 현재 활성 섹션에 따라 컬럼 상태를 재설정
-                showContentColumns(currentDetailLevel); // 현재 레벨 상태를 기반으로 컬럼 다시 그리기
+            // 초기 공란 섹션이 활성화되어 있을 경우 처리하지 않음
+            if (initialBlankSection.classList.contains('active')) {
+                return;
             }
+            
+            // 현재 활성 섹션의 컬럼들을 현재 미디어 쿼리 상태에 맞게 재정렬
+            // 현재 표시 중인 레벨(currentDisplayLevel)을 기반으로 컬럼 가시성을 설정합니다.
+            showContentColumns(currentDisplayLevel);
         }
-
-        // 미디어 쿼리 리스너 등록
-        mediaQuery.addListener(handleMediaQueryChange);
-
-        // HTML `<head>` 태그 내 `<script>` 태그의 `contains` polyfill 제거 (현대 브라우저에서는 필요 없으며, 충돌 가능성 있음)
-        // 이전에 포함되었던 `Element.prototype.matches` 및 `Element.prototype.closest` polyfill은 삭제했습니다.
-        // 현재 코드에서는 `querySelector('p strong:contains(...)')`와 같은 비표준 선택자를 사용하지 않으므로 문제 없음.
-
     </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2125965839205311" crossorigin="anonymous"></script>
     <script>
         // Tailwind CSS Production Warning suppression
         window.tailwind = {
