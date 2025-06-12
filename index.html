@@ -982,19 +982,3 @@
     </script>
 </body>
 </html>
-
-제공받은 index.html을 그대로 붙여넣었어요.
-console에는 DevTools is now available in Korean, 애드센스 광고 새로고침 요청됨. 이렇게만 떠요.
-다른 오류는 없어요.
-
-console에서
-window.pokemonData.map(p => p.runes)
-(4) [Array(2), Array(2), Array(2), Array(2)]
-window.pokemonData.map(p => p.runes).flat()
-(8) ['전투광 3개', '금강 6개', '파워 6개', '견고 3개', '신속 6개', '예리 3개', '마력 6개', '지혜 3개']
-[...new Set(window.pokemonData.map(p => p.runes).flat().filter(Boolean).map(s => s.split(' ')[0]))]
-(8) ['전투광', '금강', '파워', '견고', '신속', '예리', '마력', '지혜']
-
-이렇게 떠요.
-제발 해결해주세요.ㅠㅠ
-아마도 제가 밤새 잠도 안자고 이걸 해결할 것 같아요.
