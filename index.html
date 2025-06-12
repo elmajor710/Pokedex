@@ -627,7 +627,7 @@
                 if (pokemon.skills && pokemon.skills.length > 0) {
                     skillsHtml += `<h3 class="text-xl font-bold mt-4 mb-2">기술</h3>`;
                     pokemon.skills.forEach(skill => {
-                        // **오류 수정됨: 불필요한 math-inline 및 백슬래시 제거**
+                        // 수정된 부분: 잘못된 문자열 제거
                         skillsHtml += `<div class="bg-gray-700 p-3 rounded-lg mb-2">
                                           <h4 class="font-semibold text-gray-200"><span class="math-inline">\{skill\.name\}</h4\>
 <p class\="text\-gray\-400 text\-sm"\></span>{skill.description}</p></div>`; 
