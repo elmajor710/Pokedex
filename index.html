@@ -1,139 +1,614 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>포켓몬 도감 - 반응형</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background-color: #0f172a;
-      color: #d1d5db;
-      overflow-x: hidden;
-    }
-    .list-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-      text-align: left;
-      transition: background-color 0.2s ease;
-      cursor: pointer;
-      color: #e5e7eb;
-      font-weight: 500;
-    }
-    .list-item:hover { background-color: #374151; }
-    .list-item.active { color: white; background-color: #4f46e5; }
-    .list-item.active-lev3 { background-color: #be185d; }
-    .tag {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-weight: 600;
-      font-size: 0.8rem;
-    }
-    .type-물 { background-color: #6390F0; color: white; }
-    .type-땅 { background-color: #E0C068; color: white; }
-    .type-드래곤 { background-color: #7038F8; color: white; }
-    .type-에스퍼 { background-color: #F85888; color: white; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포켓몬 도감</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .sidebar {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            width: 250px;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100%;
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            font-size: 1.8em;
+            margin-bottom: 30px;
+            color: #3498db;
+            text-align: center;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar ul li {
+            margin-bottom: 10px;
+        }
+        .sidebar ul li a {
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .sidebar ul li a:hover, .sidebar ul li a.active {
+            background-color: #34495e;
+            color: #ffffff;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .content-section {
+            display: none;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .level-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr; /* 1:2 비율로 두 개의 컬럼 */
+            gap: 20px;
+        }
+        @media (max-width: 1024px) {
+            .level-container {
+                grid-template-columns: 1fr; /* 작은 화면에서는 한 개의 컬럼 */
+            }
+        }
+        .level-column {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+            min-height: 300px; /* 최소 높이 설정 */
+            overflow-y: auto;
+        }
+        .level-column h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        .level-column ul {
+            list-style: none;
+            padding: 0;
+        }
+        .level-column ul li {
+            margin-bottom: 8px;
+        }
+        .level-column ul li a {
+            display: block;
+            padding: 8px 10px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.2s ease;
+        }
+        .level-column ul li a:hover, .level-column ul li a.active {
+            background-color: #3498db;
+            color: #fff;
+        }
+        .detail-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .detail-content h3 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .detail-content img {
+            max-width: 150px;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .detail-content p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .detail-content strong {
+            color: #3498db;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-body img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-bottom: 15px;
+        }
+        .modal-body h4 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .modal-body p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
-<body class="p-4 sm:p-6">
-  <header class="text-center mb-6">
-    <h1 class="text-3xl sm:text-4xl font-bold text-yellow-400">포켓몬 도감</h1>
-    <p class="text-gray-400 mt-2">집중 모드 및 검색 기능</p>
-  </header>
-
-  <div class="max-w-xl mx-auto mb-6 relative">
-    <div class="relative">
-      <i id="search-icon" class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"></i>
-      <input type="text" id="search-input" placeholder="포켓몬, 아이템, 룬 이름 등으로 검색..." class="w-full bg-gray-800 border border-gray-700 rounded-full py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+<body>
+    <div class="sidebar">
+        <h2>포켓몬 도감</h2>
+        <ul>
+            <li><a href="#" onclick="showSection('pokemon-type', this)" class="active">포켓몬 타입</a></li>
+            <li><a href="#" onclick="showSection('pokemon-grade', this)">포켓몬 등급</a></li>
+            <li><a href="#" onclick="showSection('item', this)">아이템</a></li>
+            <li><a href="#" onclick="showSection('rune', this)">룬</a></li>
+            <li><a href="#" onclick="showSection('chip', this)">칩</a></li>
+            <li><a href="#" onclick="showSection('recommended-decks', this)">추천 덱</a></li>
+            <li><a href="#" onclick="showSection('calendar', this)">캘린더</a></li>
+            <li><a href="#" onclick="showSection('tips-knowhow', this)">팁 & 노하우</a></li>
+        </ul>
     </div>
-    <div id="search-results" class="hidden absolute top-full left-0 w-full bg-gray-900 border border-gray-700 rounded-lg mt-2 z-50"></div>
-  </div>
 
-  <div class="flex flex-col lg:flex-row gap-4">
-    <aside class="lg:w-1/4 space-y-2" id="lev1-list"></aside>
-    <aside class="lg:w-1/4 space-y-2" id="lev2-list"></aside>
-    <aside class="lg:w-1/4 space-y-2" id="lev3-list"></aside>
-    <main class="flex-grow" id="details-content">
-      <p class="text-gray-400 text-center pt-10">좌측 메뉴에서 항목을 선택하거나, 상단에서 검색하세요.</p>
-    </main>
-  </div>
+    <div class="content">
+        <div id="pokemon-type-section" class="content-section active">
+            <h1 class="text-3xl font-bold mb-4">포켓몬 타입 정보</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="pokemon-list">
+                </div>
+        </div>
 
-  <script src="data.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!window.pokemonData || pokemonData.length === 0) {
-        console.error('data.js 로드 실패 또는 데이터 없음');
-        document.getElementById('details-content').innerHTML = '<p class="text-red-500 text-center">데이터를 불러올 수 없습니다.</p>';
-        return;
-      }
+        <div id="pokemon-grade-section" class="content-section">
+            <h1 class="text-3xl font-bold mb-4">포켓몬 등급 정보</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="grade-list">
+                </div>
+        </div>
 
-      const categories = { type: '포켓몬 타입', grade: '포켓몬 등급', item: '아이템', rune: '룬', chip: '칩', team: '추천 덱' };
-      const lev1List = document.getElementById('lev1-list');
+        <div id="item-section" class="content-section">
+            <h1 class="text-3xl font-bold mb-4">아이템 정보</h1>
+            <div class="level-container">
+                <div class="level-column" id="lv2-list-item">
+                    <h3>아이템 목록</h3>
+                    <ul id="item-list">
+                        </ul>
+                </div>
+                <div class="level-column" id="lv3-detail-item">
+                    <h3>상세 정보</h3>
+                    <div id="item-detail-content" class="detail-content">
+                        <img id="item-image" src="" alt="아이템 이미지" class="hidden">
+                        <h4 id="item-title" class="text-xl font-bold mb-2"></h4>
+                        <p id="item-description"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      for (const key in categories) {
-        const button = document.createElement('button');
-        button.className = 'list-item';
-        button.innerHTML = `<span>${categories[key]}</span><i class="fas fa-chevron-right text-xs text-gray-400"></i>`;
-        button.addEventListener('click', () => renderLev2(key));
-        lev1List.appendChild(button);
-      }
+        <div id="rune-section" class="content-section">
+            <h1 class="text-3xl font-bold mb-4">룬 정보</h1>
+            <div class="level-container">
+                <div class="level-column" id="lv2-list-rune">
+                    <h3>룬 목록</h3>
+                    <ul id="rune-list">
+                        </ul>
+                </div>
+                <div class="level-column" id="lv3-detail-rune">
+                    <h3>상세 정보</h3>
+                    <div id="rune-detail-content" class="detail-content">
+                        <img id="rune-image" src="" alt="룬 이미지" class="hidden">
+                        <h4 id="rune-title" class="text-xl font-bold mb-2"></h4>
+                        <p id="rune-description"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      function renderLev2(key) {
-        const list = document.getElementById('lev2-list');
-        list.innerHTML = '';
-        const values = [...new Set(
-          pokemonData
-            .map(p => Array.isArray(p[key]) ? p[key].map(i => key === 'rune' || key === 'chip' ? i.split(' ')[0] : i) : p[key])
-            .flat()
-            .filter(Boolean)
-        )];
-        values.forEach(value => {
-          const button = document.createElement('button');
-          button.className = 'list-item';
-          button.innerHTML = `<span>${value}</span><i class="fas fa-chevron-right text-xs text-gray-400"></i>`;
-          button.addEventListener('click', () => renderLev3(key, value));
-          list.appendChild(button);
+        <div id="chip-section" class="content-section">
+            <h1 class="text-3xl font-bold mb-4">칩 정보</h1>
+            <div class="level-container">
+                <div class="level-column" id="lv2-list-chip">
+                    <h3>칩 목록</h3>
+                    <ul id="chip-list">
+                        </ul>
+                </div>
+                <div class="level-column" id="lv3-detail-chip">
+                    <h3>상세 정보</h3>
+                    <div id="chip-detail-content" class="detail-content">
+                        <img id="chip-image" src="" alt="칩 이미지" class="hidden">
+                        <h4 id="chip-title" class="text-xl font-bold mb-2"></h4>
+                        <p id="chip-description"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="recommended-decks-section" class="content-section">
+            <h1 class="text-3xl font-bold mb-4">추천 덱</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="deck-list">
+                </div>
+        </div>
+
+        <div id="calendar-section" class="content-section">
+            <h1 class="text-3xl font-bold mb-4">이벤트 캘린더</h1>
+            <div id="calendar-events" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                </div>
+        </div>
+
+        <div id="tips-knowhow-section" class="content-section">
+            <h1 class="text-3xl font-bold mb-4">팁 & 노하우</h1>
+            <div id="tips-list">
+                </div>
+        </div>
+    </div>
+
+    <div id="tipModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <h3 id="modalTitle" class="text-2xl font-bold mb-4"></h3>
+            </div>
+            <div class="modal-body" id="modalContent">
+                </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        // 현재 활성화된 섹션과 레벨2 목록 항목을 추적
+        let activeSectionId = 'pokemon-type-section';
+        let activeLv2ListItemId = '';
+
+        // 섹션 보이기/숨기기 함수
+        function showSection(sectionId, clickedElement) {
+            // 모든 섹션 숨기기
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            // 클릭된 섹션 보이기
+            document.getElementById(sectionId + '-section').classList.add('active');
+
+            // 사이드바 링크 활성화
+            document.querySelectorAll('.sidebar ul li a').forEach(link => {
+                link.classList.remove('active');
+            });
+            clickedElement.classList.add('active');
+
+            // 현재 활성화된 섹션 ID 업데이트
+            activeSectionId = sectionId + '-section';
+
+            // 레벨2 목록 초기화 (필요시)
+            resetLv2List();
+            // 레벨3 상세 정보 초기화 (필요시)
+            resetLv3Detail();
+
+            // 특정 섹션에 따라 내용 로드
+            if (sectionId === 'pokemon-type') {
+                loadPokemonList();
+            } else if (sectionId === 'pokemon-grade') {
+                loadPokemonGrades();
+            } else if (sectionId === 'item') {
+                loadDetailsList('item'); // 아이템 목록 로드
+            } else if (sectionId === 'rune') {
+                loadDetailsList('rune'); // 룬 목록 로드
+            } else if (sectionId === 'chip') {
+                loadDetailsList('chip'); // 칩 목록 로드
+            } else if (sectionId === 'recommended-decks') {
+                loadRecommendedDecks();
+            } else if (sectionId === 'calendar') {
+                loadCalendarEvents();
+            } else if (sectionId === 'tips-knowhow') {
+                loadTipsAndKnowhow();
+            }
+        }
+
+        // 레벨2 목록 초기화
+        function resetLv2List() {
+            document.querySelectorAll('.level-column ul').forEach(ul => {
+                ul.innerHTML = ''; // 모든 레벨2 목록 비우기
+            });
+            activeLv2ListItemId = ''; // 활성화된 항목 초기화
+        }
+
+        // 레벨3 상세 정보 초기화
+        function resetLv3Detail() {
+            document.querySelectorAll('.detail-content').forEach(detail => {
+                detail.innerHTML = ''; // 모든 상세 정보 비우기
+            });
+        }
+
+        // 포켓몬 목록 로드 함수 (기존 코드와 무관)
+        function loadPokemonList() {
+            const pokemonListDiv = document.getElementById('pokemon-list');
+            pokemonListDiv.innerHTML = ''; // 기존 목록 비우기
+
+            window.pokemonData.forEach(pokemon => {
+                const card = `
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <img src="${pokemon.image}" alt="${pokemon.name}" class="w-full h-48 object-cover rounded-md mb-2">
+                        <h3 class="text-xl font-semibold">${pokemon.name}</h3>
+                        <p><strong>등급:</strong> ${pokemon.grade}</p>
+                        <p><strong>타입:</strong> ${pokemon.type}</p>
+                        <button onclick="showPokemonDetails(${pokemon.id})" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">자세히 보기</button>
+                    </div>
+                `;
+                pokemonListDiv.innerHTML += card;
+            });
+        }
+
+        function showPokemonDetails(pokemonId) {
+            const pokemon = window.pokemonData.find(p => p.id === pokemonId);
+            if (!pokemon) {
+                console.error("포켓몬을 찾을 수 없습니다:", pokemonId);
+                return;
+            }
+
+            let skillsHtml = '';
+            pokemon.skills.forEach(skill => {
+                skillsHtml += `<p><strong>${skill.name}:</strong> ${skill.description}</p>`;
+                if (skill.parts) { // 패시브 스킬의 세부 파츠가 있는 경우
+                    skill.parts.forEach(part => {
+                        skillsHtml += `<p style="margin-left: 20px;">- <strong>${part.title}:</strong> ${part.text}</p>`;
+                    });
+                }
+            });
+
+            const modalContent = `
+                <div class="flex items-center space-x-4 mb-4">
+                    <img src="${pokemon.image}" alt="${pokemon.name}" class="w-24 h-24 object-cover rounded-full shadow-md">
+                    <div>
+                        <h4 class="text-2xl font-bold">${pokemon.name}</h4>
+                        <p class="text-lg"><strong>등급:</strong> ${pokemon.grade}</p>
+                        <p class="text-lg"><strong>타입:</strong> ${pokemon.type}</p>
+                    </div>
+                </div>
+                <p class="mb-4">${pokemon.description}</p>
+                <h5 class="text-xl font-bold mb-2">스킬:</h5>
+                ${skillsHtml}
+                <p class="mt-4"><strong>성격:</strong> ${pokemon.nature.join(', ')}</p>
+                <p><strong>빌드:</strong> ${pokemon.build.join(', ')}</p>
+                <p><strong>아이템:</strong> ${pokemon.item}</p>
+                <p><strong>룬:</strong> ${pokemon.runes.join(', ')}</p>
+                <p><strong>칩:</strong> ${pokemon.chips.join(', ')}</p>
+                <p><strong>추천 팀:</strong> ${pokemon.team}</p>
+            `;
+
+            document.getElementById('modalTitle').textContent = `${pokemon.name} 상세 정보`;
+            document.getElementById('modalContent').innerHTML = modalContent;
+            document.getElementById('tipModal').style.display = 'flex'; // 모달 열기
+        }
+
+
+        // 포켓몬 등급 로드 함수 (예시)
+        function loadPokemonGrades() {
+            const gradeListDiv = document.getElementById('grade-list');
+            gradeListDiv.innerHTML = '<p>포켓몬 등급 정보가 여기에 표시됩니다.</p>';
+            // 실제 등급 데이터와 로직을 추가
+        }
+
+        // 아이템/룬/칩 목록 로드 함수
+        function loadDetailsList(type) {
+            let data;
+            let listElementId;
+            let detailElementId;
+
+            if (type === 'item') {
+                data = window.itemDetails;
+                listElementId = 'item-list';
+                detailElementId = 'item-detail-content';
+            } else if (type === 'rune') {
+                data = window.runeDetails;
+                listElementId = 'rune-list';
+                detailElementId = 'rune-detail-content';
+            } else if (type === 'chip') {
+                data = window.chipDetails;
+                listElementId = 'chip-list';
+                detailElementId = 'chip-detail-content';
+            } else {
+                console.error("알 수 없는 타입:", type);
+                return;
+            }
+
+            const listUl = document.getElementById(listElementId);
+            listUl.innerHTML = ''; // 기존 목록 비우기
+
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = "#";
+                    link.textContent = key;
+                    link.onclick = (function(itemName, itemType) {
+                        return function() {
+                            showDetail(itemName, itemType);
+                        };
+                    })(key, type); // 클로저를 사용하여 itemName과 itemType을 캡처
+                    listItem.appendChild(link);
+                    listUl.appendChild(listItem);
+                }
+            }
+
+            // 첫 번째 항목의 상세 정보를 기본으로 표시
+            const firstItemKey = Object.keys(data)[0];
+            if (firstItemKey) {
+                showDetail(firstItemKey, type);
+            }
+        }
+
+        // 아이템/룬/칩 상세 정보 표시 함수
+        function showDetail(name, type) {
+            let dataObject;
+            let imageElementId;
+            let titleElementId;
+            let descriptionElementId;
+
+            if (type === 'item') {
+                dataObject = window.itemDetails;
+                imageElementId = 'item-image';
+                titleElementId = 'item-title';
+                descriptionElementId = 'item-description';
+            } else if (type === 'rune') {
+                dataObject = window.runeDetails;
+                imageElementId = 'rune-image';
+                titleElementId = 'rune-title';
+                descriptionElementId = 'rune-description';
+            } else if (type === 'chip') {
+                dataObject = window.chipDetails;
+                imageElementId = 'chip-image';
+                titleElementId = 'chip-title';
+                descriptionElementId = 'chip-description';
+            } else {
+                console.error("알 수 없는 타입:", type);
+                return;
+            }
+
+            const detail = dataObject[name];
+
+            if (detail) {
+                document.getElementById(imageElementId).src = detail.imageUrl || '';
+                document.getElementById(imageElementId).alt = name + ' 이미지';
+                document.getElementById(imageElementId).classList.remove('hidden');
+                document.getElementById(titleElementId).textContent = name;
+                document.getElementById(descriptionElementId).innerHTML = detail.description.replace(/\n/g, '<br>'); // 줄바꿈 적용
+            } else {
+                // 데이터가 없을 경우 초기화
+                document.getElementById(imageElementId).src = '';
+                document.getElementById(imageElementId).alt = '';
+                document.getElementById(imageElementId).classList.add('hidden');
+                document.getElementById(titleElementId).textContent = '선택된 항목 없음';
+                document.getElementById(descriptionElementId).textContent = '항목을 선택하여 상세 정보를 확인하세요.';
+            }
+
+            // 활성화된 레벨2 항목 스타일링 (선택적)
+            document.querySelectorAll(`#${type}-list li a`).forEach(link => {
+                link.classList.remove('active');
+            });
+            const clickedLink = document.querySelector(`#${type}-list li a[onclick*="${name}"]`);
+            if (clickedLink) {
+                clickedLink.classList.add('active');
+            }
+        }
+
+
+        // 추천 덱 로드 함수
+        function loadRecommendedDecks() {
+            const deckListDiv = document.getElementById('deck-list');
+            deckListDiv.innerHTML = '<p>추천 덱 정보가 여기에 표시됩니다.</p>';
+            // 실제 추천 덱 데이터와 로직을 추가
+        }
+
+        // 캘린더 이벤트 로드 함수
+        function loadCalendarEvents() {
+            const calendarEventsDiv = document.getElementById('calendar-events');
+            calendarEventsDiv.innerHTML = ''; // 기존 이벤트 비우기
+
+            window.calendarEvents.forEach(event => {
+                const eventCard = `
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-2">${event.title}</h3>
+                        <p><strong>날짜:</strong> ${event.date}</p>
+                        <p><strong>시간:</strong> ${event.time}</p>
+                        <p><strong>타입:</strong> ${event.type}</p>
+                        <p class="text-sm mt-2">${event.description}</p>
+                        ${event.imageUrl ? `<img src="${event.imageUrl}" alt="${event.title}" class="mt-2 w-full h-32 object-cover rounded-md">` : ''}
+                    </div>
+                `;
+                calendarEventsDiv.innerHTML += eventCard;
+            });
+        }
+
+        // 팁 & 노하우 로드 함수
+        function loadTipsAndKnowhow() {
+            const tipsListDiv = document.getElementById('tips-list');
+            tipsListDiv.innerHTML = ''; // 기존 목록 비우기
+
+            window.tipsAndKnowhow.forEach(tip => {
+                const tipCard = `
+                    <div class="bg-white p-4 rounded-lg shadow-md mb-4">
+                        <h3 class="text-xl font-semibold mb-2">${tip.title}</h3>
+                        <p class="text-sm text-gray-600 mb-2">작성자: ${tip.author} | 날짜: ${tip.date}</p>
+                        <button onclick="openTipModal('${tip.id}')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">내용 보기</button>
+                    </div>
+                `;
+                tipsListDiv.innerHTML += tipCard;
+            });
+        }
+
+        // 팁 모달 열기 함수
+        function openTipModal(tipId) {
+            const tip = window.tipsAndKnowhow.find(t => t.id === tipId);
+            if (tip) {
+                document.getElementById('modalTitle').textContent = tip.title;
+                document.getElementById('modalContent').innerHTML = tip.content;
+                document.getElementById('tipModal').style.display = 'flex'; // Flexbox로 중앙 정렬
+            }
+        }
+
+        // 모달 닫기 함수
+        function closeModal() {
+            document.getElementById('tipModal').style.display = 'none';
+        }
+
+        // 초기 로드 시 "포켓몬 타입" 섹션 활성화
+        document.addEventListener('DOMContentLoaded', () => {
+            showSection('pokemon-type', document.querySelector('.sidebar ul li a.active'));
         });
-      }
-
-      function renderLev3(key, value) {
-        const list = document.getElementById('lev3-list');
-        list.innerHTML = '';
-        const filtered = pokemonData.filter(p => {
-          if (key === 'rune' || key === 'chip') {
-            return Array.isArray(p[key]) && p[key].some(i => i.split(' ')[0] === value);
-          }
-          return Array.isArray(p[key]) ? p[key].includes(value) : p[key] === value;
-        });
-        filtered.forEach(p => {
-          const button = document.createElement('button');
-          button.className = 'list-item';
-          button.textContent = p.name;
-          button.addEventListener('click', () => renderDetails(p));
-          list.appendChild(button);
-        });
-      }
-
-      function renderDetails(pokemon) {
-        const detail = document.getElementById('details-content');
-        detail.innerHTML = `
-          <h2 class="text-2xl font-bold mb-4">${pokemon.name}</h2>
-          <p class="text-gray-300 italic mb-4">${pokemon.description}</p>
-          <div class="flex gap-2 mb-4">
-            <span class="tag type-${pokemon.type}">${pokemon.type}</span>
-            <span class="tag bg-gray-600 text-white">${pokemon.grade} 등급</span>
-          </div>
-        `;
-      }
-    });
-  </script>
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6447953289913217" crossorigin="anonymous"></script>
+    <script>
+        window.tailwind = {
+            prefix: 'tw-', // Tailwind CSS 클래스 이름에 'tw-' 접두사 추가 (선택 사항)
+            important: true, // 모든 Tailwind 클래스에 !important 추가 (선택 사항, 주의해서 사용)
+        };
+    </script>
 </body>
 </html>
