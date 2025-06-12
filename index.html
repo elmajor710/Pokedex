@@ -76,7 +76,7 @@
 
         .content-area {
             flex-grow: 1;
-            display: flex; /* PC에서 2분할/3분할을 위한 flex */
+            display: flex; /* PC에서 컬럼 분할을 위한 flex */
             gap: 20px;
         }
         .content-section {
@@ -112,7 +112,7 @@
         }
         
         /* PC에서 초기 공란 화면일 때 (main-detail-column만 보임, 확장됨) */
-        #initial-blank-section.active + #dynamic-content-section { /* 초기 공란 섹션 옆의 dynamic-content-section */
+        #initial-blank-section.active + #dynamic-content-section {
             display: flex; /* 활성화시키지만 */
             flex-grow: 1;
             padding: 0; /* 패딩 제거 */
@@ -134,11 +134,10 @@
             display: none !important; /* 초기 공란 화면에서는 목록 컬럼과 섹션 제목 숨김 */
         }
 
-
         /* PC에서 Lev.1 클릭 후 Lev.2 목록 + Lev.3/4 상세 (3분할) */
-        /* 기본적으로 active content-section 내의 main-list-column과 main-detail-column이 flex item이 되어 2분할 (사이드바 포함 3분할) */
-        .content-section.active:not(#initial-blank-section) .main-list-column,
-        .content-section.active:not(#initial-blank-section) .main-detail-column {
+        /* dynamic-content-section이 active이고 final-detail-view가 아닐 때 */
+        .content-section.active:not(.final-detail-view) .main-list-column,
+        .content-section.active:not(.final-detail-view) .main-detail-column {
             display: block; /* JS로 제어 */
         }
 
@@ -209,7 +208,7 @@
         .detail-content .back-button {
             margin-top: 20px;
             float: right;
-            display: none; /* PC에서는 기본적으로 숨김, JS로 제어 */
+            display: block; /* PC에서도 최종 화면에서 항상 표시 */
         }
         .pokemon-detail-card {
             background-color: #f0f2f5;
@@ -405,7 +404,7 @@
         // 전역 변수들
         let currentActiveSectionType = 'initial'; // 현재 활성화된 섹션의 타입 (예: 'pokemon-type', 'item')
         let currentDisplayLevel = 'initial'; // 현재 main-detail-column에 표시되는 내용의 레벨: 'initial', 'level3', 'level4'
-        let navigationStack = []; // 뒤로가기 관리를 위한 스택 ( {type, filterValue, pokemonId} )
+        let navigationStack = []; // 뒤로가기 관리를 위한 스택 ( {type, level, filterValue, pokemonId} )
 
         const mediaQuery = window.matchMedia('(max-width: 1024px)');
         const adClient = "ca-pub-2125965839205311";
@@ -477,6 +476,7 @@
             };
 
             // 초기 로드 시 navigationStack을 재설정하지 않기 위해 isInitial 플래그 추가
+            // (isInitial은 showSection에서 첫 showContentColumns 호출 시만 true)
             if (!options.isInitial || navigationStack.length === 0) {
                  const lastState = navigationStack[navigationStack.length - 1];
                  if (!lastState || JSON.stringify(lastState) !== JSON.stringify(currentState)) {
@@ -486,6 +486,7 @@
             
             currentDisplayLevel = levelState; // 현재 상세 컬럼에 표시되는 레벨을 업데이트
 
+            // PC와 모바일 화면 전환 로직
             if (mediaQuery.matches) { // 모바일 환경 (단일 화면)
                 if (levelState === 'list') { // Lev.2 목록만 활성화
                     mainListColumn.classList.remove('mobile-hidden');
@@ -499,28 +500,22 @@
                     mainDetailColumn.classList.add('mobile-active');
                 }
             } else { // PC 환경 (Lev.1 + 최종 2분할)
-                // 모든 컬럼의 초기 상태 설정
+                // 기본적으로 두 컬럼 모두 표시 (35% / 65%)
                 mainListColumn.style.display = 'block';
                 mainListColumn.classList.remove('collapsed'); // 혹시 모를 collapsed 제거
                 mainDetailColumn.style.display = 'block';
                 mainDetailColumn.classList.remove('expanded'); // 혹시 모를 expanded 제거
 
-                // "목록으로 돌아가기" 버튼은 PC에서 기본적으로 숨김
-                mainDetailColumn.querySelectorAll('.back-button').forEach(btn => {
-                    btn.style.display = 'none';
-                });
-
                 // dynamicContentSection에 final-detail-view 클래스 제거
                 dynamicContentSection.classList.remove('final-detail-view');
 
-                // 최종 상세 화면 (Lev.3 상세 또는 Lev.4 상세)인 경우
+                // 최종 상세 화면 (Lev.3 상세 또는 Lev.4 상세)인 경우: PC 2분할 (Lev.1 + 최종)
                 if (levelState === 'detail' || levelState === 'pokemon-final-detail') {
                     mainListColumn.classList.add('collapsed'); // Lev.2 목록 숨김
                     mainDetailColumn.classList.add('expanded'); // 상세 컬럼 확장
-                    mainDetailColumn.querySelector('.back-button').style.display = 'block'; // 돌아가기 버튼 표시
                     dynamicContentSection.classList.add('final-detail-view'); // 최종 상세 뷰 클래스 추가
                 }
-                // 포켓몬 섹션에서 Lev.3 (포켓몬 이름 목록)인 경우 (3분할 유지)
+                // 포켓몬 섹션에서 Lev.3 (포켓몬 이름 목록)인 경우: PC 3분할 (Lev.1 + Lev.2 + Lev.3)
                 else if (levelState === 'pokemon-names') {
                     // main-list-column (Lev.2)과 main-detail-column (Lev.3 포켓몬 이름 목록) 모두 보임
                     // width는 CSS 기본값 (35%, 65%) 유지
@@ -718,12 +713,10 @@
 
         // Lev.3: 타입/등급에 따른 포켓몬 이름 목록 렌더링 (mainDetailColumn에)
         function renderPokemonNamesForTypeOrGrade(filterValue, sectionType) {
-            // 이 함수는 PC에서 Lev.2 옆에 Lev.3을 보여주고, 모바일에서 Lev.2를 대체합니다.
-            // 그리고 이 Lev.3 목록에서 포켓몬 클릭 시 Lev.4 상세로 넘어갑니다.
             mainDetailColumn.innerHTML = `
                 <h3>${filterValue} ${sectionType === 'pokemon-type' ? '타입' : '등급'} 포켓몬</h3>
                 <ul id="pokemon-filtered-list"></ul>
-                <button onclick="backFromPokemonList()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
+                <button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
             `;
             const listUl = document.getElementById('pokemon-filtered-list');
 
@@ -738,7 +731,6 @@
 
             if (filteredPokemons.length === 0) {
                 listUl.innerHTML = `<li><p>해당 ${filterValue}에 맞는 포켓몬이 없습니다.</p></li>`;
-                // 이 경우 Lev.4로 넘어갈 수 없으므로, 여기서 메시지 표시
                 mainDetailColumn.innerHTML += `<p class="text-center mt-4">해당 ${filterValue}에 맞는 포켓몬 상세 정보는 없습니다.</p>`;
             } else {
                 filteredPokemons.forEach(pokemon => {
@@ -749,8 +741,9 @@
                     link.onclick = (event) => {
                         event.preventDefault();
                         // Lev.4: 포켓몬 최종 상세 렌더링 (mainDetailColumn의 내용을 교체)
-                        renderPokemonFinalDetail(pokemon.id, sectionType, filterValue); // filterValue도 넘겨줌 (backFromPokemonDetail에서 사용)
+                        renderPokemonFinalDetail(pokemon.id, sectionType, filterValue);
                         setActiveListItem(link); // 활성 스타일 적용
+                        // showContentColumns는 renderPokemonFinalDetail 내에서 호출됩니다.
                     };
                     listItem.appendChild(link);
                     listUl.appendChild(listItem);
@@ -763,7 +756,7 @@
 
             // PC에서는 돌아가기 버튼 숨김
             if (!mediaQuery.matches) {
-                mainDetailColumn.querySelector('.back-button').style.display = 'none';
+                mainDetailColumn.querySelector('.back-button').style.display = 'block'; // PC에서 항상 표시
             }
         }
 
@@ -778,11 +771,11 @@
                     <h4>${name}</h4>
                     <p>${detail.description.replace(/\n/g, '<br>')}</p>
                 </div>
-                <button onclick="backFromDetail()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
+                <button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
             `;
             // PC에서는 돌아가기 버튼 표시
             if (!mediaQuery.matches) {
-                mainDetailColumn.querySelector('.back-button').style.display = 'block';
+                mainDetailColumn.querySelector('.back-button').style.display = 'block'; // PC에서 항상 표시
             }
         }
 
@@ -807,7 +800,7 @@
                         <p><strong>구성 포켓몬:</strong> ${selectedDeck.pokemons ? selectedDeck.pokemons.join(', ') : '정보 없음'}</p>
                         <p><strong>전략:</strong> ${selectedDeck.strategy || '정보 없음'}</p>
                     </div>
-                    <button onclick="backFromDetail()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
+                    <button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
                 `;
             } else {
                 mainDetailColumn.innerHTML = `
@@ -815,7 +808,7 @@
                     <div class="detail-content">
                         <p>선택된 덱의 정보를 찾을 수 없습니다.</p>
                     </div>
-                    <button onclick="backFromDetail()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
+                    <button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
                 `;
             }
             // PC에서는 돌아가기 버튼 숨김
@@ -844,7 +837,7 @@
                 });
             }
 
-            mainDetailColumn.innerHTML = `<div class="detail-content">${eventsHtml}</div><button onclick="backFromDetail()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>`;
+            mainDetailColumn.innerHTML = `<div class="detail-content">${eventsHtml}</div><button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>`;
             // PC에서는 돌아가기 버튼 숨김
             if (!mediaQuery.matches) {
                 mainDetailColumn.querySelector('.back-button').style.display = 'block'; // PC에서 항상 표시
@@ -863,13 +856,13 @@
                         <p class="text-sm text-gray-600 mb-2">작성자: <span>${tip.author}</span> | 날짜: <span>${tip.date}</span></p>
                         <div class="tip-content">${tip.content}</div>
                     </div>
-                    <button onclick="backFromDetail()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
+                    <button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
                 `;
             } else {
                 mainDetailColumn.innerHTML = `
                     <h3>글을 찾을 수 없습니다.</h3>
                     <div class="detail-content"><p>해당하는 팁 & 노하우 글이 존재하지 않습니다.</p></div>
-                    <button onclick="backFromDetail()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
+                    <button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로 돌아가기</button>
                 `;
             }
             // PC에서는 돌아가기 버튼 숨김
@@ -885,7 +878,7 @@
                 mainDetailColumn.innerHTML = `
                     <h3>포켓몬 정보 없음</h3>
                     <div class="detail-content"><p>해당 포켓몬의 정보를 찾을 수 없습니다.</p></div>
-                    <button onclick="backFromPokemonDetail()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">이전으로 돌아가기</button>
+                    <button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">이전으로 돌아가기</button>
                 `;
                 return;
             }
@@ -917,7 +910,7 @@
                     <p><strong>칩:</strong> <span class="clickable-item" onclick="openModalItemDetail(['${pokemon.chips.map(c => c.split(' ')[0]).join("','")}'], 'chip')">${pokemon.chips.join(', ')}</span></p>
                     <p><strong>추천 팀:</strong> ${pokemon.team}</p>
                 </div>
-                <button onclick="backFromPokemonDetail()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">이전으로 돌아가기</button>
+                <button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">이전으로 돌아가기</button>
             `;
             // PC에서는 돌아가기 버튼 숨김
             if (!mediaQuery.matches) {
@@ -929,17 +922,17 @@
         // --- 뒤로가기 버튼 로직 (내비게이션 스택 활용) ---
 
         function goBack() {
-            if (navigationStack.length > 1) { // 현재 상태 (항상 1개)와 이전 상태가 스택에 있어야 함
+            if (navigationStack.length > 1) { // 현재 상태 (최상단) 포함 최소 2개 이상이므로 이전으로 갈 수 있음
                 navigationStack.pop(); // 현재 상태 제거
-                const prevState = navigationStack[navigationStack.length - 1]; // 이전 상태
+                const prevState = navigationStack[navigationStack.length - 1]; // 이전 상태 가져오기
 
-                // 이전 상태 복원
-                if (prevState.level === 'list') {
-                    showContentColumns('list', prevState);
-                    if (prevState.type === 'pokemon-type') {
-                        renderPokemonTypeOrGradeList('pokemon-type');
-                    } else if (prevState.type === 'pokemon-grade') {
-                        renderPokemonTypeOrGradeList('pokemon-grade');
+                // 이전 상태 복원 (showContentColumns를 호출하여 화면 분할을 조정하고, 해당 콘텐츠를 다시 렌더링)
+                showContentColumns(prevState.level, prevState); // 스택의 이전 상태를 기반으로 화면 상태 설정
+
+                // 이전 레벨의 콘텐츠를 다시 렌더링
+                if (prevState.level === 'list') { // Lev.2 목록으로 돌아감
+                    if (prevState.type === 'pokemon-type' || prevState.type === 'pokemon-grade') {
+                        renderPokemonTypeOrGradeList(prevState.type);
                     } else if (prevState.type === 'item') {
                         renderGenericList('item', window.itemDetails);
                     } else if (prevState.type === 'rune') {
@@ -953,11 +946,9 @@
                     } else if (prevState.type === 'tips-knowhow') {
                         renderTipsAndKnowhowList();
                     }
-                } else if (prevState.level === 'pokemon-names') {
-                    showContentColumns('pokemon-names', prevState);
+                } else if (prevState.level === 'pokemon-names') { // 포켓몬 Lev.3 이름 목록으로 돌아감
                     renderPokemonNamesForTypeOrGrade(prevState.filterValue, prevState.type);
-                } else if (prevState.level === 'detail') { // 일반 상세 (아이템, 룬, 칩 등)
-                    showContentColumns('detail', prevState);
+                } else if (prevState.level === 'detail') { // 일반 섹션의 Lev.3 상세로 돌아감
                     if (prevState.type === 'item') {
                          showItemRuneChipDetail(prevState.name, prevState.type);
                     } else if (prevState.type === 'rune') {
@@ -971,44 +962,28 @@
                     } else if (prevState.type === 'tips-knowhow') {
                          showTipDetail(prevState.id);
                     }
-                } else if (prevState.level === 'pokemon-final-detail') { // 포켓몬 최종 상세
-                    showContentColumns('pokemon-final-detail', prevState);
-                    renderPokemonFinalDetail(prevState.pokemonId, prevState.type, prevState.filterValue);
                 }
+                // renderPokemonFinalDetail은 goBack() 내부에서 호출되지 않음 (그 레벨에서 다시 goBack() 호출)
 
                 // 스택에서 현재 상태가 제거되었으므로 activeListItem 초기화
-                // (이전 목록으로 돌아갈 때 활성화된 항목이 사라지는 효과)
-                setActiveListItem(null); // activeListItem 비활성화
+                setActiveListItem(null);
             } else {
-                // 스택에 더 이상 뒤로 갈 상태가 없을 때 (Lev.1에서 시작)
+                // 스택에 더 이상 뒤로 갈 상태가 없을 때 (최초 Lev.1에서 시작)
                 // 초기 공란 화면으로 돌아감
                 dynamicContentSection.classList.remove('active');
                 initialBlankSection.classList.add('active');
-                initialBlankSection.classList.add('is-initial-blank'); // 초기 공란 클래스 유지
 
                 // 사이드바 활성 스타일 초기화
                 document.querySelectorAll('.sidebar ul li a').forEach(link => {
                     link.classList.remove('active');
                 });
-                document.querySelector('.sidebar ul li a[onclick*="showSection(\'pokemon-type\', this)"]').classList.add('active'); // 포켓몬 타입 기본 활성화
+                // '포켓몬 타입'을 기본 활성화 상태로 설정
+                document.querySelector('.sidebar ul li a[onclick*="showSection(\'pokemon-type\', this)"]').classList.add('active'); 
 
                 // 광고 새로고침
                 showAd();
             }
         }
-
-        // 각 백 버튼의 onclick 이벤트 핸들러를 goBack()으로 통합
-        // HTML에서 onclick="backFromDetail()", onclick="backFromPokemonList()" 등은 제거하고
-        // 모든 버튼에 onclick="goBack()"을 사용합니다.
-        // 이 로직은 HTML에서 `backFromDetail`, `backFromPokemonList` 등을 호출하는 기존 버튼을 유지하고,
-        // 해당 함수들이 최종적으로 `goBack()`을 호출하도록 변경하는 것이 더 유연할 수 있습니다.
-        // 현재는 HTML의 각 back-button에 직접 goBack()을 연결하고, goBack()이 스택을 보고 판단하도록 구현합니다.
-        // 따라서, 각 상세 렌더링 함수에서 생성하는 back-button의 onclick을 'goBack()'으로 변경합니다.
-        mainDetailColumn.addEventListener('click', function(event) {
-            if (event.target.classList.contains('back-button')) {
-                goBack();
-            }
-        });
 
 
         // --- 유틸리티 함수들 ---
