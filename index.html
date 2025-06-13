@@ -3,204 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 도감 정보</title>
+    <title>포켓몬 도감 정보 - 기본 구조</title>
     <style>
-        :root {
-            --sidebar-width: 240px; --primary-color: #3498db; --background-color: #f4f6f9;
-            --top-ad-banner-height: 90px;
+        /* 기본 스타일 초기화 */
+        body, h1, ul, li {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--background-color); padding-top: var(--top-ad-banner-height); }
-        .top-ad-banner {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--top-ad-banner-height);
-            background-color: #fff; border-bottom: 1px solid #e0e0e0;
-            z-index: 1000; display: flex; align-items: center; justify-content: center;
+
+        /* 전체 레이아웃 */
+        body {
+            display: flex;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f4f6f9;
         }
-        .app-container { display: flex; height: calc(100vh - var(--top-ad-banner-height)); }
+
+        /* Lev.1 사이드바 */
         .sidebar {
-            width: var(--sidebar-width); background-color: #2c3e50; color: white;
-            padding: 15px; flex-shrink: 0; overflow-y: auto;
+            width: 240px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            flex-shrink: 0; /* 창 크기가 줄어도 너비 유지 */
         }
-        .sidebar h1 { font-size: 1.6em; text-align: center; margin-bottom: 25px; }
-        .sidebar ul { list-style: none; padding: 0; margin: 0; }
-        .sidebar .nav-menu li { padding: 13px 20px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; font-size: 1.1em;}
-        .sidebar .nav-menu li.active { background-color: var(--primary-color); }
-        .main-content { flex-grow: 1; display: flex; overflow-x: auto; position: relative; }
-        .content-column {
-            display: none;
-            min-width: 320px; background-color: white; border-right: 1px solid #e9e9e9;
-            padding: 25px; overflow-y: auto; flex-shrink: 0; box-sizing: border-box;
+
+        .sidebar h1 {
+            font-size: 1.6em;
+            text-align: center;
+            margin-bottom: 30px;
         }
-        .list-item { padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; font-size:1.05em; }
-        .icon-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-        .icon-button { padding: 12px; border-radius: 30px; text-align: center; color: white; font-weight: bold; cursor: pointer; border: 2px solid rgba(0,0,0,0.05); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
-        .detail-section h3 { border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.4em; color: #c0392b; }
-        .detail-view-container img { max-width: 120px; float: left; margin: 0 20px 10px 0; border-radius: 8px; }
-        .detail-view-container pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: 1.1em; line-height: 1.7; }
-        .top-controls { display: none; }
-        .btn-back { margin-bottom: 15px; padding: 8px 12px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; }
+
+        .sidebar .nav-menu {
+            list-style: none;
+        }
+
+        .sidebar .nav-menu li {
+            padding: 13px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 1.1em;
+        }
+
+        /* 마우스를 올렸을 때의 효과 */
+        .sidebar .nav-menu li:hover {
+            background-color: #34495e;
+        }
         
-        @media (min-width: 769px) {
-            .main-content[data-is-final="true"] .content-column:not(:last-child) { display: none; }
-        }
-        @media (max-width: 768px) {
-            body { padding-top: calc(var(--top-ad-banner-height) + 50px); }
-            .top-controls {
-                display: flex; justify-content: space-between; align-items: center;
-                position: fixed; top: var(--top-ad-banner-height); left: 0; width: 100%;
-                background-color: #2c3e50; color: white; padding: 10px 15px;
-                z-index: 900; box-sizing: border-box;
-            }
-            .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); z-index: 1100; transition: transform 0.3s ease; }
-            .sidebar.show { transform: translateX(0); }
-            .app-container { height: calc(100vh - (var(--top-ad-banner-height) + 50px)); }
-            .main-content { overflow: hidden; }
-            .content-column {
-                display: block; visibility: hidden;
-                position: absolute; width: 100%; height: 100%; min-width: 100%;
-                box-sizing: border-box; top: 0; left: 0;
-                transform: translateX(100%); transition: transform 0.3s ease-in-out;
-            }
-            .content-column.active { visibility: visible; transform: translateX(0%); }
+        /* main-content (하위 Lev.들이 표시될 빈 공간) */
+        .main-content {
+            flex-grow: 1; /* 남은 공간을 모두 차지 */
+            padding: 25px;
+            background-color: #ffffff;
+            overflow-y: auto; /* 내용이 많아지면 스크롤 생성 */
         }
     </style>
 </head>
 <body>
-    <div class="top-ad-banner" id="top-ad-banner"></div>
-    <div class="app-container">
-        <aside class="sidebar" id="sidebar"></aside>
-        <main class="main-content" id="main-content"></main>
-    </div>
-    <div class="top-controls">
-        <button id="btn-menu" style="background:none; border:none; color:white; font-size:1.2em;">☰ 메뉴</button>
-        <h2 id="mobile-title" style="margin:0; font-size:1.1em; color:white;"></h2>
-        <button id="btn-back-mobile" style="display: none; background:none; border:none; color:white; font-size:1.1em;">‹ 뒤로</button>
-    </div>
 
-    <script src="data.js"></script>
-    <script>
-        const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
-        const sidebarEl = document.getElementById('sidebar');
-        const mainContentEl = document.getElementById('main-content');
-        const btnMenu = document.getElementById('btn-menu');
-        const btnBackMobile = document.getElementById('btn-back-mobile');
-        const mobileTitle = document.getElementById('mobile-title');
-        let navigationPath = []; // [{category, key}] -> [{key}, {key}, ...]
+    <aside class="sidebar">
+        <h1>포켓몬 정보</h1>
+        <ul class="nav-menu">
+            <li>포켓몬 타입</li>
+            <li>포켓몬 등급</li>
+            <li>아이템</li>
+            <li>룬</li>
+            <li>칩</li>
+            <li>추천 덱</li>
+            <li>캘린더</li>
+            <li>팁 & 노하우</li>
+        </ul>
+    </aside>
 
-        const goBack = () => { if (navigationPath.length > 1) { navigationPath.pop(); renderContent(); } };
-        
-        const handleItemClick = (depth, newKey) => {
-            navigationPath = navigationPath.slice(0, depth + 1);
-            navigationPath.push(newKey);
-            renderContent();
-        };
+    <main class="main-content">
+        </main>
 
-        const renderContent = () => {
-            mainContentEl.innerHTML = '';
-            if (navigationPath.length === 0) {
-                btnBackMobile.style.display = 'none';
-                mobileTitle.textContent = '메뉴 선택';
-                mainContentEl.dataset.isFinal = 'false';
-                return;
-            }
-
-            const currentCategory = navigationPath[0].category;
-            const config = categoryConfig[currentCategory];
-            const isFinalView = navigationPath.length === config.renderType.length + 1;
-            mainContentEl.dataset.isFinal = isFinalView;
-            
-            const lastKey = navigationPath[navigationPath.length - 1]?.key;
-            mobileTitle.textContent = lastKey || config.title;
-            if (isFinalView) { refreshTopAd(); }
-
-            navigationPath.forEach((pathItem, depth) => {
-                if(depth > 0) { // lev2부터 컬럼 생성
-                    const columnEl = document.createElement('div');
-                    const columnId = config.levels[depth - 1];
-                    columnEl.id = `column-${columnId}`;
-                    columnEl.className = 'content-column';
-                    mainContentEl.appendChild(columnEl);
-                    renderColumn(columnEl, currentCategory, depth);
-                }
-            });
-            
-            if (window.innerWidth <= 768) {
-                sidebarEl.classList.remove('show');
-                const lastColumn = mainContentEl.querySelector('.content-column:last-child');
-                if (lastColumn) lastColumn.classList.add('active');
-            }
-            btnBackMobile.style.display = navigationPath.length > 1 ? 'block' : 'none';
-        };
-
-        const renderColumn = (columnEl, category, depth) => {
-            const config = categoryConfig[category];
-            const currentKey = navigationPath[depth]?.key;
-            const prevKey = navigationPath[depth-1]?.key;
-
-            const backButton = document.createElement('button');
-            backButton.className = 'btn-back';
-            backButton.textContent = '‹ 목록으로 돌아가기';
-            backButton.onclick = goBack;
-            columnEl.appendChild(backButton);
-
-            const sourceData = database[config.dataKeys[depth - 1]];
-            const renderType = config.renderType[depth - 1];
-
-            if (renderType === 'list') {
-                const title = document.createElement('h2');
-                title.textContent = prevKey || config.title;
-                columnEl.appendChild(title);
-                const listData = (depth === 1) ? Object.keys(sourceData) : (sourceData[prevKey] || []);
-                const container = config.listStyle === 'icon-button' ? document.createElement('div') : columnEl;
-                if (config.listStyle === 'icon-button') {
-                    container.className = 'icon-grid-container';
-                    columnEl.appendChild(container);
-                }
-                listData.forEach(itemKey => {
-                    const itemEl = document.createElement('div');
-                    itemEl.textContent = itemKey;
-                    itemEl.onclick = () => handleItemClick(depth, itemKey);
-                    switch (config.listStyle) {
-                        case 'icon-button': itemEl.className = 'icon-button'; itemEl.style.backgroundColor = typeColors[itemKey] || '#ccc'; break;
-                        case 'color-text': itemEl.className = 'list-item'; itemEl.style.color = itemColors[itemKey] || '#333'; itemEl.style.fontWeight = 'bold'; break;
-                        default: itemEl.className = 'list-item'; break;
-                    }
-                    container.appendChild(itemEl);
-                });
-            } else if (renderType === 'detail') {
-                const detailData = sourceData[currentKey];
-                if (detailData) {
-                    const contentDiv = document.createElement('div');
-                    contentDiv.innerHTML = config.detailRenderer(detailData, currentKey);
-                    columnEl.appendChild(contentDiv);
-                }
-            }
-        };
-        
-        const refreshTopAd = () => { /* 이전과 동일, 생략 가능 */ };
-        const handleAdClick = () => { /* 이전과 동일, 생략 가능 */ };
-
-        const init = () => {
-            if (isAdmin) console.log("운영자 모드 활성화.");
-            sidebarEl.innerHTML = `<h1>포켓몬 정보</h1><ul class="nav-menu" id="main-nav">
-                <li data-category="pokemonType">포켓몬 타입</li><li data-category="pokemonGrade">포켓몬 등급</li>
-                <li data-category="item">아이템</li><li data-category="rune">룬</li><li data-category="chip">칩</li>
-                <li data-category="recommendedDeck">추천 덱</li><li data-category="calendar">캘린더</li>
-                <li data-category="tips">팁 & 노하우</li></ul>`;
-            document.getElementById('main-nav').addEventListener('click', e => {
-                if (e.target.tagName === 'LI') {
-                    const category = e.target.dataset.category;
-                    sidebarEl.querySelector('.active')?.classList.remove('active');
-                    e.target.classList.add('active');
-                    navigationPath = [{ category: category }];
-                    renderContent();
-                }
-            });
-            btnBackMobile.addEventListener('click', goBack);
-            btnMenu.addEventListener('click', () => sidebarEl.classList.toggle('show'));
-            window.addEventListener('resize', renderContent);
-            refreshTopAd();
-        };
-        init();
-    </script>
 </body>
 </html>
