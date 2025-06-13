@@ -86,58 +86,48 @@
     <script>
         const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
         const sidebarEl = document.getElementById('sidebar');
+        const mainContentEl = document.getElementById('main-content');
         const columns = { lev2: document.getElementById('column-lev2'), lev3: document.getElementById('column-lev3'), lev4: document.getElementById('column-lev4') };
         const btnMenu = document.getElementById('btn-menu');
         const btnBackMobile = document.getElementById('btn-back-mobile');
         const mobileTitle = document.getElementById('mobile-title');
-        let navigationStack = []; // [{category, key}]
+        let navigationStack = [];
 
-        const goBack = () => {
-            navigationStack.pop();
-            renderView();
-        };
-
-        const handleItemClick = (currentIndex, newKey) => {
+        const goBack = () => { if (navigationStack.length > 0) { navigationStack.pop(); renderView(); } };
+        const handleItemClick = (depth, newKey) => {
             const currentCategory = navigationStack[0].category;
-            navigationStack = navigationStack.slice(0, currentIndex + 1);
+            navigationStack = navigationStack.slice(0, depth + 1);
             navigationStack.push({ category: currentCategory, key: newKey });
             renderView();
         };
 
         const renderView = () => {
-            Object.values(columns).forEach(col => {
-                col.classList.add('column-hidden');
-                col.classList.remove('active');
-            });
-            
+            Object.values(columns).forEach(col => col.classList.add('column-hidden'));
             if (navigationStack.length === 0) {
                 btnBackMobile.style.display = 'none';
                 mobileTitle.textContent = '메뉴 선택';
                 if (window.innerWidth <= 768) sidebarEl.classList.remove('show');
                 return;
             }
-
             const isMobile = window.innerWidth <= 768;
             const currentState = navigationStack[navigationStack.length - 1];
             const config = categoryConfig[currentState.category];
-            const currentLevel = navigationStack.length; // 0 = lev2, 1 = lev3, ...
-            
+            const currentDepth = navigationStack.length - 1;
+            const isDetailView = config.renderType[currentDepth] === 'detail';
             mobileTitle.textContent = currentState.key || config.title;
-
-            const isDetailView = config.renderType[currentLevel] === 'detail';
-            if(isDetailView) { refreshTopAd(); }
-
+            if (isDetailView) { refreshTopAd(); }
             if (isMobile) {
                 sidebarEl.classList.remove('show');
-                const colToRender = renderColumn(currentState, currentLevel);
+                Object.values(columns).forEach(col => col.classList.remove('active'));
+                const colToRender = renderColumn(currentState, currentDepth);
                 if (colToRender) {
                     colToRender.classList.remove('column-hidden');
                     colToRender.classList.add('active');
                 }
             } else {
                 const finalLevel = config.levels.length;
-                if (currentLevel === finalLevel && isDetailView) {
-                     const colToRender = renderColumn(currentState, currentLevel);
+                if (navigationStack.length === finalLevel && isDetailView) {
+                     const colToRender = renderColumn(currentState, currentDepth);
                      if (colToRender) colToRender.classList.remove('column-hidden');
                 } else {
                     navigationStack.forEach((state, index) => {
@@ -149,30 +139,27 @@
             btnBackMobile.style.display = navigationStack.length > 0 ? 'block' : 'none';
         };
 
-        const renderColumn = (state, index) => {
+        const renderColumn = (state, depth) => {
             const { category, key } = state;
             const config = categoryConfig[category];
-            const columnEl = columns[config.levels[index]];
+            const columnEl = columns[config.levels[depth]];
             if (!columnEl) return null;
             columnEl.innerHTML = '';
-            
             const backButtonPC = document.createElement('button');
             backButtonPC.className = 'btn-back-pc'; backButtonPC.textContent = '‹ 목록으로 돌아가기';
             backButtonPC.onclick = goBack;
             columnEl.appendChild(backButtonPC);
-            if (index > 0 || (index === 0 && config.renderType[0] === 'detail')) {
+            if (depth > 0 || (depth === 0 && config.renderType[0] === 'detail')) {
                 backButtonPC.style.display = 'block';
             }
-
-            const sourceData = database[config.dataKeys[index]];
-            const renderType = config.renderType[index];
-
+            const sourceData = database[config.dataKeys[depth]];
+            const renderType = config.renderType[depth];
             if (renderType === 'list') {
                 const title = document.createElement('h2');
-                const prevKey = index > 0 ? navigationStack[index - 1].key : null;
+                const prevKey = depth > 0 ? navigationStack[depth - 1].key : null;
                 title.textContent = key || config.title;
                 columnEl.appendChild(title);
-                const listData = (index === 0) ? Object.keys(sourceData) : (sourceData[prevKey] || []);
+                const listData = (depth === 0) ? Object.keys(sourceData) : (sourceData[prevKey] || []);
                 const container = config.listStyle === 'icon-button' ? document.createElement('div') : columnEl;
                 if (config.listStyle === 'icon-button') {
                     container.className = 'icon-grid-container';
@@ -181,7 +168,7 @@
                 listData.forEach(itemKey => {
                     const itemEl = document.createElement('div');
                     itemEl.textContent = itemKey;
-                    itemEl.onclick = () => handleItemClick(index, itemKey);
+                    itemEl.onclick = () => handleItemClick(depth, itemKey);
                     switch (config.listStyle) {
                         case 'icon-button': itemEl.className = 'icon-button'; itemEl.style.backgroundColor = typeColors[itemKey] || '#ccc'; break;
                         case 'color-text': itemEl.className = 'list-item'; itemEl.style.color = itemColors[itemKey] || '#333'; itemEl.style.fontWeight = 'bold'; break;
@@ -202,8 +189,8 @@
             return columnEl;
         };
         
-        const refreshTopAd = () => { /* 이전과 동일 */ };
-        const handleAdClick = () => { /* 이전과 동일 */ };
+        const refreshTopAd = () => { /* 이전과 동일, 생략 가능 */ };
+        const handleAdClick = () => { /* 이전과 동일, 생략 가능 */ };
 
         const init = () => {
             if (isAdmin) console.log("운영자 모드 활성화.");
