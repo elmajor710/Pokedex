@@ -4,21 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>포켓몬 도감 정보</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx" crossorigin="anonymous"></script>
     <style>
-        /* 기본 스타일링: 보기 편하도록 최소한으로 구성 */
+        :root {
+            --sidebar-width: 220px;
+            --primary-color: #3498db;
+            --background-color: #f0f2f5;
+            --font-color: #333;
+            --border-color: #e0e0e0;
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+        }
+        .app-container {
             display: flex;
-            background-color: #f0f2f5;
             height: 100vh;
         }
+        /* --- 사이드바 (Lev.1) --- */
         .sidebar {
-            width: 200px;
+            width: var(--sidebar-width);
             background-color: #2c3e50;
             color: white;
             padding: 15px;
             flex-shrink: 0;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
         }
         .sidebar h1 {
             font-size: 1.5em;
@@ -26,309 +38,307 @@
             margin-bottom: 20px;
         }
         .sidebar .nav-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+            list-style: none; padding: 0; margin: 0;
         }
         .sidebar .nav-menu li {
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            padding: 12px 15px; margin-bottom: 5px; border-radius: 5px;
+            cursor: pointer; transition: background-color 0.2s;
         }
-        .sidebar .nav-menu li:hover {
-            background-color: #34495e;
-        }
-        .sidebar .nav-menu li.active {
-            background-color: #3498db;
-        }
+        .sidebar .nav-menu li:hover { background-color: #34495e; }
+        .sidebar .nav-menu li.active { background-color: var(--primary-color); }
+
+        /* --- 메인 컨텐츠 영역 --- */
         .main-content {
             flex-grow: 1;
-            padding: 20px;
             display: flex;
-            flex-direction: column;
+            overflow-x: hidden; /* 모바일에서 가로 스크롤 방지 */
+        }
+        .content-column {
+            min-width: 300px;
+            background-color: white;
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
             overflow-y: auto;
         }
-        .content-header {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        .content-column h2 { margin-top: 0; }
+        .content-column .list-item {
+            padding: 12px; margin-bottom: 8px; border-radius: 4px;
+            cursor: pointer; border: 1px solid #eee;
+            transition: background-color 0.2s, border-color 0.2s;
         }
-        .content-header h2 {
-            margin: 0;
-            font-size: 1.8em;
-            color: #2c3e50;
+        .content-column .list-item:hover { background-color: #f9f9f9; }
+        .content-column .list-item.active {
+            background-color: var(--primary-color);
+            color: white; border-color: var(--primary-color);
         }
-        .content-body {
-            display: flex;
-            flex-grow: 1;
-            gap: 20px;
+        .column-hidden { display: none; }
+
+        /* --- 상세 정보 (Lev.4) 스타일 --- */
+        .detail-header { text-align: center; }
+        .detail-header img { max-width: 150px; margin-bottom: 10px; }
+        .detail-header h2 { color: var(--primary-color); }
+        .detail-section { margin-bottom: 25px; }
+        .detail-section h3 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px; margin-bottom: 12px;
         }
-        .sub-nav-container {
-            width: 220px;
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            flex-shrink: 0;
+        .detail-section ul { list-style: none; padding: 0; }
+        .detail-section li { margin-bottom: 8px; }
+        .skill-passive { background-color: #f5f5f5; padding: 10px; border-radius: 5px; }
+
+        /* --- 상단 컨트롤 버튼 (메뉴, 뒤로가기) --- */
+        .top-controls {
+            display: none; /* 모바일에서만 표시 */
+            position: fixed; top: 0; left: 0; width: 100%;
+            background-color: #2c3e50; color: white;
+            padding: 10px 15px;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        .sub-nav-container .list-item {
-            padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 4px;
-            cursor: pointer;
-            border: 1px solid #eee;
+        .top-controls button {
+            background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;
         }
-        .sub-nav-container .list-item:hover {
-            background-color: #f5f5f5;
+        .btn-back { display: none; } /* 뒤로가기 버튼은 필요할 때만 JS로 표시 */
+
+        /* --- 모바일 반응형 스타일 --- */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .top-controls { display: flex; justify-content: space-between; }
+            .sidebar {
+                position: fixed; top: 0; left: 0; height: 100%;
+                transform: translateX(-100%);
+                z-index: 200;
+                padding-top: 60px; /* 상단 컨트롤러 높이만큼 */
+            }
+            .sidebar.show { transform: translateX(0); }
+            .main-content {
+                width: 100%;
+                padding-top: 50px; /* 상단 컨트롤러 높이만큼 */
+            }
+            .content-column {
+                width: 100%;
+                min-width: 100%;
+                box-sizing: border-box; /* padding 포함하여 너비 100% */
+                border-right: none;
+            }
+            .pc-only { display: none; }
         }
-        .sub-nav-container .list-item.active {
-            background-color: #3498db;
-            color: white;
-            border-color: #3498db;
-        }
-        .content-display-area {
-            flex-grow: 1;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .content-display-area h3 {
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
-        .content-display-area ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .content-display-area li {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-        /* pre 태그는 팁&노하우에서 줄바꿈을 위해 사용됩니다. */
-        pre {
-            white-space: pre-wrap; /* 자동 줄바꿈 */
-            word-wrap: break-word; /* 긴 단어 줄바꿈 */
-            font-family: inherit;
-            font-size: 1em;
-            line-height: 1.6;
-        }
-        /* 애드센스 광고 슬롯 스타일 (예시) */
-        .ad-slot {
+        
+        /* AdSense 플레이스홀더 */
+        .ad-placeholder {
             width: 100%;
-            min-height: 100px; /* 너비가 0이 되는 것을 방지 */
+            min-height: 100px;
             background-color: #fafafa;
-            border: 1px dashed #ccc;
+            border: 2px dashed #ccc;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: #999;
+            font-size: 1em;
             margin-top: 20px;
+            box-sizing: border-box;
+            padding: 10px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <h1>포켓몬 정보</h1>
+            <ul class="nav-menu" id="main-nav">
+                <li data-category="pokemonType">포켓몬 타입</li>
+                <li data-category="pokemonGrade">포켓몬 등급</li>
+                <li data-category="item">아이템</li>
+                <li data-category="rune">룬</li>
+                <li data-category="chip">칩</li>
+                <li data-category="recommendedDeck">추천 덱</li>
+                <li data-category="calendar">캘린더</li>
+                <li data-category="tips">팁 & 노하우</li>
+            </ul>
+        </aside>
 
-    <aside class="sidebar">
-        <h1>포켓몬 도감</h1>
-        <ul class="nav-menu" id="main-nav">
-            <li data-category="pokemonType">포켓몬 타입</li>
-            <li data-category="pokemonGrade">포켓몬 등급</li>
-            <li data-category="item">아이템</li>
-            <li data-category="chip">칩</li>
-            <li data-category="recommendedDeck">추천 덱</li>
-            <li data-category="calendar">캘린더</li>
-            <li data-category="tips">팁 & 노하우</li>
-        </ul>
-    </aside>
+        <main class="main-content" id="main-content">
+            <div class="content-column column-hidden" id="column-lev2"></div>
+            <div class="content-column column-hidden" id="column-lev3"></div>
+            <div class="content-column column-hidden" id="column-lev4"></div>
+        </main>
+    </div>
 
-    <main class="main-content">
-        <header class="content-header">
-            <h2 id="main-title">환영합니다!</h2>
-        </header>
-        <div class="content-body">
-            <div class="sub-nav-container" id="sub-nav-container">
-                </div>
-            <div class="content-display-area" id="content-display-area">
-                <p>왼쪽 메뉴에서 카테고리를 선택하세요.</p>
-                </div>
-        </div>
-    </main>
+    <div class="top-controls">
+        <button id="btn-menu">☰ 메뉴</button>
+        <h2 id="mobile-title" style="margin:0; font-size:1.1em;"></h2>
+        <button id="btn-back" class="btn-back">‹ 뒤로가기</button>
+    </div>
 
     <script src="data.js"></script>
-
     <script>
-        // DOM 요소 가져오기
+        // --- DOM 요소 ---
+        const sidebar = document.getElementById('sidebar');
         const mainNav = document.getElementById('main-nav');
-        const mainTitle = document.getElementById('main-title');
-        const subNavContainer = document.getElementById('sub-nav-container');
-        const contentDisplayArea = document.getElementById('content-display-area');
+        const columns = {
+            lev2: document.getElementById('column-lev2'),
+            lev3: document.getElementById('column-lev3'),
+            lev4: document.getElementById('column-lev4'),
+        };
+        const btnMenu = document.getElementById('btn-menu');
+        const btnBack = document.getElementById('btn-back');
+        const mobileTitle = document.getElementById('mobile-title');
 
-        let currentCategory = ''; // 현재 선택된 메인 카테고리를 저장하는 변수
+        // --- 상태 관리 ---
+        let navigationStack = []; // { level, category, key } 형태의 객체를 저장
 
-        // 메인 네비게이션 클릭 이벤트 처리
-        mainNav.addEventListener('click', function(e) {
-            if (e.target.tagName === 'LI') {
-                // 'active' 클래스 관리
-                const currentActive = mainNav.querySelector('.active');
-                if (currentActive) {
-                    currentActive.classList.remove('active');
+        // --- 화면 렌더링 엔진 ---
+        function renderView() {
+            const isMobile = window.innerWidth <= 768;
+            Object.values(columns).forEach(col => col.classList.add('column-hidden'));
+
+            if (navigationStack.length === 0) {
+                // 초기 화면
+                btnBack.style.display = 'none';
+                mobileTitle.textContent = '메뉴 선택';
+                if(isMobile) sidebar.classList.remove('show');
+                return;
+            }
+
+            const currentState = navigationStack[navigationStack.length - 1];
+            mobileTitle.textContent = currentState.key || document.querySelector(`#main-nav li[data-category=${currentState.category}]`).textContent;
+
+            // PC/모바일 레이아웃 제어
+            if (isMobile) {
+                sidebar.classList.remove('show');
+                const lastVisibleColumn = renderColumn(currentState);
+                if (lastVisibleColumn) lastVisibleColumn.classList.remove('column-hidden');
+            } else {
+                const config = categoryConfig[currentState.category];
+                const finalLevel = config.levels.length;
+
+                // 요청사항: 최종 레벨에서는 이전 레벨 숨기기
+                if (currentState.level === finalLevel) {
+                    const finalColumn = renderColumn(currentState);
+                    if (finalColumn) finalColumn.classList.remove('column-hidden');
+                } else {
+                    navigationStack.forEach(state => {
+                        const col = renderColumn(state);
+                        if (col) col.classList.remove('column-hidden');
+                    });
                 }
-                e.target.classList.add('active');
-
-                // 카테고리 표시
-                currentCategory = e.target.dataset.category;
-                showCategoryView(currentCategory);
             }
-        });
-
-        // 서브 네비게이션 클릭 이벤트 처리 (이벤트 위임)
-        subNavContainer.addEventListener('click', function(e) {
-            const target = e.target.closest('.list-item');
-            if (target) {
-                // 'active' 클래스 관리
-                const currentActive = subNavContainer.querySelector('.active');
-                if (currentActive) {
-                    currentActive.classList.remove('active');
-                }
-                target.classList.add('active');
-
-                const subCategoryKey = target.dataset.key;
-                showSubCategoryContent(subCategoryKey);
-            }
-        });
-
-        // 메인 카테고리 뷰를 표시하는 함수
-        function showCategoryView(category) {
-            let title = '';
-            let subNavItems = [];
-
-            switch (category) {
-                case 'pokemonType':
-                    title = '포켓몬 타입별 정보';
-                    // database 객체에서 키들을 가져와 subNavItems 배열을 만듭니다.
-                    if (database.pokemonByType) subNavItems = Object.keys(database.pokemonByType);
-                    break;
-                case 'pokemonGrade':
-                    title = '포켓몬 등급별 정보';
-                    if (database.pokemonByGrade) subNavItems = Object.keys(database.pokemonByGrade);
-                    break;
-                case 'item':
-                    title = '아이템 정보';
-                    if (database.itemByColor) subNavItems = Object.keys(database.itemByColor);
-                    break;
-                case 'chip':
-                    title = '칩 정보';
-                    if (database.chipInfo) subNavItems = Object.keys(database.chipInfo);
-                    break;
-                case 'recommendedDeck':
-                    title = '추천 덱';
-                    if (database.recommendedDecks) subNavItems = Object.keys(database.recommendedDecks);
-                    break;
-                case 'calendar':
-                    title = '캘린더';
-                    if (database.calendarEvents) subNavItems = Object.keys(database.calendarEvents);
-                    break;
-                case 'tips':
-                    title = '팁 & 노하우';
-                    if (database.tipsAndKnowhow) subNavItems = Object.keys(database.tipsAndKnowhow);
-                    break;
-            }
-
-            mainTitle.textContent = title;
-
-            // 서브 네비게이션(Lev.2) 생성
-            subNavContainer.innerHTML = ''; // 기존 내용 초기화
-            subNavItems.forEach(key => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'list-item';
-                itemDiv.textContent = key;
-                itemDiv.dataset.key = key; // 클릭 시 어떤 항목인지 식별하기 위해 데이터 속성 사용
-                subNavContainer.appendChild(itemDiv);
-            });
             
-            // 컨텐츠 표시 영역(Lev.3) 초기화
-            contentDisplayArea.innerHTML = '<p>왼쪽 목록에서 항목을 선택하세요.</p>';
+            // 뒤로가기 버튼 표시 여부
+            btnBack.style.display = navigationStack.length > 0 ? 'block' : 'none';
         }
 
-        // 서브 카테고리(Lev.3/4) 내용을 표시하는 함수
-        function showSubCategoryContent(key) {
-            let contentHTML = '';
-            let data;
+        function renderColumn(state) {
+            const { level, category, key } = state;
+            const config = categoryConfig[category];
+            if (!config || level > config.levels.length) return null;
 
-            // 현재 메인 카테고리에 따라 다른 데이터를 가져와 처리
-            switch (currentCategory) {
-                case 'pokemonType':
-                    data = database.pokemonByType ? database.pokemonByType[key] : undefined;
-                    if (data) {
-                        contentHTML = `<h3>${key} 포켓몬 목록</h3><ul>${data.map(name => `<li>${name}</li>`).join('')}</ul>`;
-                    }
-                    break;
-                case 'pokemonGrade':
-                    data = database.pokemonByGrade ? database.pokemonByGrade[key] : undefined;
-                    if (data) {
-                        contentHTML = `<h3>${key} 포켓몬 목록</h3><ul>${data.map(name => `<li>${name}</li>`).join('')}</ul>`;
-                    }
-                    break;
-                case 'item':
-                     data = database.itemByColor ? database.itemByColor[key] : undefined;
-                    if (data) {
-                        contentHTML = `<h3>${key} 아이템 목록</h3><ul>${data.map(name => `<li>${name}</li>`).join('')}</ul>`;
-                    }
-                    break;
-                case 'chip':
-                    data = database.chipInfo ? database.chipInfo[key] : undefined;
-                    // 데이터와 description 속성이 모두 있는지 확인 (TypeError 방지)
-                    if (data && data.description) {
-                        contentHTML = `<h3>${key} 설명</h3><p>${data.description}</p>`;
-                    }
-                    break;
-                case 'recommendedDeck':
-                    data = database.recommendedDecks ? database.recommendedDecks[key] : undefined;
-                    if (data) {
-                        contentHTML = `<h3>${key} 구성원</h3><ul>${data.map(name => `<li>${name}</li>`).join('')}</ul>`;
-                    }
-                    break;
-                case 'calendar':
-                    data = database.calendarEvents ? database.calendarEvents[key] : undefined;
-                    if (data) {
-                        contentHTML = `<h3>${key} 정보</h3><ul>${data.map(info => `<li>${info}</li>`).join('')}</ul>`;
-                    }
-                    break;
-                case 'tips':
-                    data = database.tipsAndKnowhow ? database.tipsAndKnowhow[key] : undefined;
-                    if (data) {
-                        // <pre> 태그로 감싸서 줄바꿈이 그대로 표시되도록 함
-                        contentHTML = `<h3>${key}</h3><pre>${data}</pre>`;
-                    }
-                    break;
+            const columnName = config.levels[level - 1];
+            const columnEl = columns[columnName];
+            if (!columnEl) return null;
+            
+            const dataKey = config.dataKeys[level - 1];
+            const sourceData = database[dataKey];
+
+            columnEl.innerHTML = ''; // 컬럼 초기화
+
+            // '목록으로 돌아가기' 버튼 (PC용)
+            if (level > 1 && window.innerWidth > 768) {
+                 const backButton = document.createElement('button');
+                 backButton.textContent = '‹ 목록으로 돌아가기';
+                 backButton.onclick = () => {
+                     navigationStack.pop();
+                     renderView();
+                 };
+                 columnEl.appendChild(backButton);
             }
-
-            // 데이터가 없는 경우의 메시지 처리
-            if (!contentHTML) {
-                contentHTML = '<p>표시할 정보가 없습니다.</p>';
-            }
-
-            contentDisplayArea.innerHTML = contentHTML;
-
-            // 애드센스 오류 해결: 컨텐츠가 표시된 후 광고를 로드
-            // 아래 주석을 풀고 실제 애드센스 코드를 넣으세요.
-            /*
-            setTimeout(function() {
-                try {
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                    console.log('AdSense push attempted.');
-                } catch (e) {
-                    console.error('AdSense push failed:', e);
+            
+            // 데이터 타입에 따라 컨텐츠 생성
+            if (config.renderType[level - 1] === 'list') {
+                const listData = (level === 1) ? Object.keys(sourceData) : (sourceData[key] || []);
+                columnEl.innerHTML += `<h2>${key || config.title}</h2>`;
+                listData.forEach(itemKey => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'list-item';
+                    itemEl.textContent = itemKey;
+                    itemEl.onclick = () => handleItemClick(level + 1, category, itemKey);
+                    columnEl.appendChild(itemEl);
+                });
+            } else if (config.renderType[level - 1] === 'detail') {
+                const detailData = sourceData[key];
+                if (detailData) {
+                    columnEl.innerHTML += config.detailRenderer(detailData);
+                    showAd(); // 컨텐츠가 그려진 후 광고 표시
+                } else {
+                    columnEl.innerHTML += `<p>상세 정보가 없습니다.</p>`;
                 }
-            }, 100); // 약간의 지연 시간을 주어 컨테이너 너비가 계산될 시간을 확보
-            */
-        }
-    </script>
+            }
 
+            return columnEl;
+        }
+
+        // --- 이벤트 핸들러 ---
+        function handleItemClick(nextLevel, category, key) {
+            // 현재 스택에서 다음 레벨보다 높은 레벨은 모두 제거
+            navigationStack = navigationStack.filter(state => state.level < nextLevel);
+            navigationStack.push({ level: nextLevel, category, key });
+            renderView();
+        }
+
+        mainNav.addEventListener('click', (e) => {
+            if (e.target.tagName === 'LI') {
+                const category = e.target.dataset.category;
+                mainNav.querySelector('.active')?.classList.remove('active');
+                e.target.classList.add('active');
+                navigationStack = [{ level: 1, category }];
+                renderView();
+            }
+        });
+
+        btnBack.addEventListener('click', () => {
+            if (navigationStack.length > 0) {
+                navigationStack.pop();
+                renderView();
+            }
+        });
+        
+        btnMenu.addEventListener('click', () => sidebar.classList.toggle('show'));
+        window.addEventListener('resize', renderView); // 창 크기 변경 시 뷰 다시 렌더링
+
+        // --- AdSense 로직 ---
+        function showAd() {
+            // 상세 정보 컬럼(lev4)에 광고 컨테이너 생성
+            const adContainer = columns.lev4.querySelector('.ad-placeholder');
+            if (adContainer) return; // 이미 있으면 생성 안함
+
+            const adPlaceholder = document.createElement('div');
+            adPlaceholder.className = 'ad-placeholder';
+            adPlaceholder.innerHTML = `
+                <ins class="adsbygoogle" style="display:block; width:100%;" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="yyyyyyyyyy" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                <small>광고가 여기에 표시됩니다. (실제 서버에서 확인)</small>
+            `;
+            // lev4 컬럼 또는 상세 정보가 표시되는 마지막 컬럼에 광고 추가
+            const targetColumn = columns.lev4.classList.contains('column-hidden') ? columns.lev3 : columns.lev4;
+            targetColumn.appendChild(adPlaceholder);
+
+            // AdSense 라이브러리가 로드되었는지 확인 후 광고 푸시
+            try {
+                if (window.adsbygoogle && typeof window.adsbygoogle.push === 'function') {
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                    console.log("AdSense push 시도.");
+                } else {
+                    console.warn("AdSense 라이브러리가 아직 로드되지 않았습니다.");
+                }
+            } catch (e) {
+                console.error("AdSense push 중 오류 발생:", e);
+                adPlaceholder.innerHTML += '<br><small style="color:red;">광고 로드 중 오류 발생.</small>';
+            }
+        }
+        
+        // --- 초기화 ---
+        renderView();
+
+    </script>
 </body>
 </html>
