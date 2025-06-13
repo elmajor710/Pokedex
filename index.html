@@ -24,10 +24,11 @@
         .sidebar ul { list-style: none; padding: 0; margin: 0; }
         .sidebar .nav-menu li { padding: 13px 20px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; font-size: 1.1em;}
         .sidebar .nav-menu li.active { background-color: var(--primary-color); }
-        .main-content { flex-grow: 1; display: flex; overflow-x: auto; }
+        .main-content { flex-grow: 1; display: flex; overflow-x: hidden; position: relative; }
         .content-column {
-            min-width: 320px; background-color: white; border-right: 1px solid #e9e9e9;
-            padding: 25px; overflow-y: auto;
+            background-color: white; border-right: 1px solid #e9e9e9;
+            padding: 25px; overflow-y: auto; flex-shrink: 0;
+            width: 320px; box-sizing: border-box;
         }
         .column-hidden { display: none; }
         .list-item { padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; font-size:1.05em; }
@@ -53,12 +54,11 @@
             .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); z-index: 1100; transition: transform 0.3s ease; }
             .sidebar.show { transform: translateX(0); }
             .app-container { height: calc(100vh - (var(--top-ad-banner-height) + 50px)); }
-            .main-content { position: relative; width: 100%; height: 100%; }
+            .main-content { position: absolute; top:50px; left:0; right:0; bottom:0; overflow:hidden; }
             .content-column {
                 position: absolute; width: 100%; height: 100%;
-                min-width: 100%; box-sizing: border-box; top: 0; left: 0;
+                min-width: 100%; box-sizing: border-box; top: 0;
                 transform: translateX(100%); transition: transform 0.3s ease-in-out;
-                background-color: white;
             }
             .content-column.active { transform: translateX(0%); }
             .btn-back-pc { display: none !important; }
@@ -70,9 +70,9 @@
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content" id="main-content">
-            <div class="content-column" id="column-lev2"></div>
-            <div class="content-column" id="column-lev3"></div>
-            <div class="content-column" id="column-lev4"></div>
+            <div class="content-column column-hidden" id="column-lev2"></div>
+            <div class="content-column column-hidden" id="column-lev3"></div>
+            <div class="content-column column-hidden" id="column-lev4"></div>
         </main>
     </div>
     <div class="top-controls">
@@ -85,61 +85,56 @@
     <script>
         const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
         const sidebarEl = document.getElementById('sidebar');
+        const mainContentEl = document.getElementById('main-content');
         const columns = { lev2: document.getElementById('column-lev2'), lev3: document.getElementById('column-lev3'), lev4: document.getElementById('column-lev4') };
         const btnMenu = document.getElementById('btn-menu');
         const btnBackMobile = document.getElementById('btn-back-mobile');
         const mobileTitle = document.getElementById('mobile-title');
-        let navigationStack = [];
+        let navigationStack = []; // [{category, key}]
 
-        const goBack = () => { if (navigationStack.length > 0) { navigationStack.pop(); renderView(); } };
-        const handleItemClick = (level, category, key) => {
-            const nextLevel = level + 1;
-            navigationStack = navigationStack.filter(state => state.level < nextLevel);
-            navigationStack.push({ level: nextLevel, category, key });
+        const goBack = () => {
+            navigationStack.pop();
+            renderView();
+        };
+
+        const handleItemClick = (currentIndex, newKey) => {
+            const currentCategory = navigationStack[0].category;
+            navigationStack = navigationStack.slice(0, currentIndex + 1);
+            navigationStack.push({ category: currentCategory, key: newKey });
             renderView();
         };
 
         const renderView = () => {
-            const isMobile = window.innerWidth <= 768;
-            Object.values(columns).forEach(col => {
-                col.classList.add('column-hidden');
-                col.classList.remove('active');
-            });
+            Object.values(columns).forEach(col => col.classList.add('column-hidden'));
             if (navigationStack.length === 0) {
                 btnBackMobile.style.display = 'none';
                 mobileTitle.textContent = '메뉴 선택';
-                if (isMobile) sidebarEl.classList.remove('show');
+                if (window.innerWidth <= 768) sidebarEl.classList.remove('show');
                 return;
             }
-
+            
+            const isMobile = window.innerWidth <= 768;
             const currentState = navigationStack[navigationStack.length - 1];
             const config = categoryConfig[currentState.category];
-            mobileTitle.textContent = currentState.key || config.title;
+            const currentLevel = navigationStack.length; // 1 = lev2, 2 = lev3, ...
+            const isDetailView = config.renderType[currentLevel - 1] === 'detail';
 
-            const isDetailView = config.renderType[currentState.level - 2] === 'detail';
-            if(isDetailView) { refreshTopAd(); }
+            mobileTitle.textContent = currentState.key || config.title;
+            if (isDetailView) { refreshTopAd(); }
 
             if (isMobile) {
                 sidebarEl.classList.remove('show');
-                navigationStack.forEach((state, index) => {
-                    const col = renderColumn(state, index);
-                    if (col) {
-                        col.classList.remove('column-hidden');
-                        if (index === navigationStack.length - 1) {
-                            col.classList.add('active');
-                        } else {
-                            col.style.transform = 'translateX(-100%)';
-                        }
-                    }
-                });
+                Object.values(columns).forEach(col => col.classList.remove('active'));
+                const colToRender = renderColumn(navigationStack[navigationStack.length - 1], navigationStack.length - 1);
+                if (colToRender) {
+                    colToRender.classList.remove('column-hidden');
+                    colToRender.classList.add('active');
+                }
             } else {
-                const finalLevel = config.levels.length + 1;
-                if (currentState.level === finalLevel) {
-                    const finalState = navigationStack.find(s => s.level === finalLevel);
-                    if (finalState) {
-                        const col = renderColumn(finalState, navigationStack.length - 1);
-                        if(col) col.classList.remove('column-hidden');
-                    }
+                const finalLevel = config.levels.length;
+                if (currentLevel === finalLevel && isDetailView) {
+                     const colToRender = renderColumn(currentState, currentLevel - 1);
+                     if (colToRender) colToRender.classList.remove('column-hidden');
                 } else {
                     navigationStack.forEach((state, index) => {
                         const col = renderColumn(state, index);
@@ -149,13 +144,11 @@
             }
             btnBackMobile.style.display = navigationStack.length > 0 ? 'block' : 'none';
         };
-
+        
         const renderColumn = (state, index) => {
-            const { level, category, key } = state;
+            const { category, key } = state;
             const config = categoryConfig[category];
-            if (!config) return null;
-            const currentLevelIndex = level - 2;
-            const columnEl = columns[config.levels[currentLevelIndex]];
+            const columnEl = columns[config.levels[index]];
             if (!columnEl) return null;
             columnEl.innerHTML = '';
             
@@ -163,15 +156,17 @@
             backButtonPC.className = 'btn-back-pc'; backButtonPC.textContent = '‹ 목록으로 돌아가기';
             backButtonPC.onclick = goBack;
             columnEl.appendChild(backButtonPC);
-            if (level > 1) backButtonPC.style.display = 'block';
+            if (index > 0) backButtonPC.style.display = 'block';
 
-            const sourceData = database[config.dataKeys[currentLevelIndex]];
-            
-            if (config.renderType[currentLevelIndex] === 'list') {
+            const sourceData = database[config.dataKeys[index]];
+            const renderType = config.renderType[index];
+
+            if (renderType === 'list') {
                 const title = document.createElement('h2');
+                const prevKey = index > 0 ? navigationStack[index - 1].key : null;
                 title.textContent = key || config.title;
                 columnEl.appendChild(title);
-                const listData = (level === 2) ? Object.keys(sourceData) : (sourceData[key] || []);
+                const listData = (index === 0) ? Object.keys(sourceData) : (sourceData[prevKey] || []);
                 const container = config.listStyle === 'icon-button' ? document.createElement('div') : columnEl;
                 if (config.listStyle === 'icon-button') {
                     container.className = 'icon-grid-container';
@@ -180,7 +175,7 @@
                 listData.forEach(itemKey => {
                     const itemEl = document.createElement('div');
                     itemEl.textContent = itemKey;
-                    itemEl.onclick = () => handleItemClick(level, category, itemKey);
+                    itemEl.onclick = () => handleItemClick(index, itemKey);
                     switch (config.listStyle) {
                         case 'icon-button': itemEl.className = 'icon-button'; itemEl.style.backgroundColor = typeColors[itemKey] || '#ccc'; break;
                         case 'color-text': itemEl.className = 'list-item'; itemEl.style.color = itemColors[itemKey] || '#333'; itemEl.style.fontWeight = 'bold'; break;
@@ -188,12 +183,14 @@
                     }
                     container.appendChild(itemEl);
                 });
-            } else if (config.renderType[currentLevelIndex] === 'detail') {
+            } else if (renderType === 'detail') {
                 const detailData = sourceData[key];
                 if (detailData) {
                     const contentDiv = document.createElement('div');
                     contentDiv.innerHTML = config.detailRenderer(detailData);
                     columnEl.appendChild(contentDiv);
+                } else {
+                     columnEl.innerHTML += `<p>상세 정보가 없습니다.</p>`;
                 }
             }
             return columnEl;
@@ -214,7 +211,7 @@
                     const category = e.target.dataset.category;
                     sidebarEl.querySelector('.active')?.classList.remove('active');
                     e.target.classList.add('active');
-                    navigationStack = [{ level: 2, category: category }];
+                    navigationStack = [{ category: category, key: null }];
                     renderView();
                 }
             });
