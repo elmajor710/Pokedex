@@ -6,29 +6,75 @@
     <title>포켓몬 도감 정보</title>
     <style>
         :root {
-            --sidebar-width: 240px; --primary-color: #3498db; --background-color: #f4f6f9;
+            --sidebar-width: 240px;
+            --primary-color: #3498db;
+            --background-color: #f4f6f9;
             --top-ad-banner-height: 90px;
         }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--background-color); padding-top: var(--top-ad-banner-height); }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            padding-top: var(--top-ad-banner-height);
+        }
         .top-ad-banner {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--top-ad-banner-height);
-            background-color: #fff; border-bottom: 1px solid #e0e0e0;
-            z-index: 1000; display: flex; align-items: center; justify-content: center;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: var(--top-ad-banner-height);
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .app-container { display: flex; height: calc(100vh - var(--top-ad-banner-height)); }
+        .app-container {
+            display: flex;
+            height: calc(100vh - var(--top-ad-banner-height));
+        }
         .sidebar {
-            width: var(--sidebar-width); background-color: #2c3e50; color: white;
-            padding: 15px; flex-shrink: 0; overflow-y: auto;
+            width: var(--sidebar-width);
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            flex-shrink: 0;
+            overflow-y: auto;
         }
-        .sidebar h1 { font-size: 1.6em; text-align: center; margin-bottom: 25px; }
-        .sidebar ul { list-style: none; padding: 0; margin: 0; }
-        .sidebar .nav-menu li { padding: 13px 20px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; font-size: 1.1em;}
-        .sidebar .nav-menu li.active { background-color: var(--primary-color); }
-        .main-content { flex-grow: 1; display: flex; overflow-x: auto; position: relative; }
+        .sidebar h1 {
+            font-size: 1.6em;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar .nav-menu li {
+            padding: 13px 20px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 1.1em;
+        }
+        .sidebar .nav-menu li.active {
+            background-color: var(--primary-color);
+        }
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+        }
         .content-column {
             display: none;
-            min-width: 320px; background-color: white; border-right: 1px solid #e9e9e9;
-            padding: 25px; overflow-y: auto; flex-shrink: 0; box-sizing: border-box;
+            min-width: 320px;
+            background-color: white;
+            border-right: 1px solid #e9e9e9;
+            padding: 25px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-sizing: border-box;
         }
         /* --- PC 화면 구성 제어 (CSS) --- */
         .main-content[data-depth='1'] .column-1,
@@ -42,37 +88,117 @@
             display: none;
         }
         
-        .list-item { padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; font-size:1.05em; }
-        .icon-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-        .icon-button {
-            padding: 12px; border-radius: 30px; text-align: center; color: white; font-weight: bold;
-            cursor: pointer; border: 2px solid rgba(0,0,0,0.05); text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        .list-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            font-size: 1.05em;
         }
-        .detail-section h3 { border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.4em; color: #c0392b; }
-        .detail-view-container img { max-width: 120px; float: left; margin: 5px 20px 10px 0; border-radius: 8px; }
-        .detail-view-container pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: 1.1em; line-height: 1.7; }
-        .top-controls { display: none; }
-        .btn-back { display: none; margin-bottom: 15px; padding: 8px 12px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .icon-grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+        }
+        .icon-button {
+            padding: 12px;
+            border-radius: 30px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid rgba(0,0,0,0.05);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .detail-section h3 {
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            color: #c0392b;
+        }
+        .detail-view-container img {
+            max-width: 120px;
+            float: left;
+            margin: 5px 20px 10px 0;
+            border-radius: 8px;
+        }
+        .detail-view-container pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: inherit;
+            font-size: 1.1em;
+            line-height: 1.7;
+        }
+        .top-controls {
+            display: none;
+        }
+        /* ← 수정: 항상 보이도록 변경 */
+        .btn-back {
+            display: block;
+            margin-bottom: 15px;
+            padding: 8px 12px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
         
         @media (max-width: 768px) {
-            body { padding-top: calc(var(--top-ad-banner-height) + 50px); }
+            body {
+                padding-top: calc(var(--top-ad-banner-height) + 50px);
+            }
             .top-controls {
-                display: flex; justify-content: space-between; align-items: center;
-                position: fixed; top: var(--top-ad-banner-height); left: 0; width: 100%;
-                background-color: #2c3e50; color: white; padding: 10px 15px;
-                z-index: 900; box-sizing: border-box;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: fixed;
+                top: var(--top-ad-banner-height);
+                left: 0;
+                width: 100%;
+                background-color: #2c3e50;
+                color: white;
+                padding: 10px 15px;
+                z-index: 900;
+                box-sizing: border-box;
             }
-            .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); z-index: 1100; transition: transform 0.3s ease; }
-            .sidebar.show { transform: translateX(0); }
-            .app-container { height: calc(100vh - (var(--top-ad-banner-height) + 50px)); }
-            .main-content { overflow: hidden; }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                transform: translateX(-100%);
+                z-index: 1100;
+                transition: transform 0.3s ease;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .app-container {
+                height: calc(100vh - (var(--top-ad-banner-height) + 50px));
+            }
+            .main-content {
+                overflow: hidden;
+            }
             .content-column {
-                display: block; visibility: hidden;
-                position: absolute; width: 100%; height: 100%; min-width: 100%;
-                box-sizing: border-box; top: 0; left: 0;
-                transform: translateX(100%); transition: transform 0.3s ease-in-out;
+                display: block;
+                visibility: hidden;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                min-width: 100%;
+                box-sizing: border-box;
+                top: 0;
+                left: 0;
+                transform: translateX(100%);
+                transition: transform 0.3s ease-in-out;
             }
-            .content-column.active { visibility: visible; transform: translateX(0%); }
+            .content-column.active {
+                visibility: visible;
+                transform: translateX(0%);
+            }
         }
     </style>
 </head>
@@ -98,7 +224,12 @@
         const mobileTitle = document.getElementById('mobile-title');
         let navigationPath = [];
 
-        const goBack = () => { if (navigationPath.length > 1) { navigationPath.pop(); renderContent(); } };
+        const goBack = () => {
+            if (navigationPath.length > 1) {
+                navigationPath.pop();
+                renderContent();
+            }
+        };
         
         const handleItemClick = (depth, newKey) => {
             navigationPath = navigationPath.slice(0, depth + 1);
@@ -119,7 +250,8 @@
             const isMobile = window.innerWidth <= 768;
             const currentCategory = navigationPath[0];
             const config = categoryConfig[currentCategory];
-            const isFinalView = navigationPath.length -1 === config.renderType.length;
+            /* ← 수정: 최종 뷰 판정 로직 */
+            const isFinalView = navigationPath.length === config.renderType.length + 1;
 
             mainContentEl.dataset.depth = navigationPath.length;
             mainContentEl.dataset.isFinal = isFinalView;
@@ -127,7 +259,7 @@
             if (isFinalView) { refreshTopAd(); }
 
             navigationPath.forEach((key, depth) => {
-                if (depth > 0) { // lev2부터 컬럼 생성
+                if (depth > 0) {
                     const columnEl = document.createElement('div');
                     columnEl.className = `content-column column-${depth}`;
                     mainContentEl.appendChild(columnEl);
@@ -135,7 +267,7 @@
                 }
             });
 
-            if(isMobile) {
+            if (isMobile) {
                 sidebarEl.classList.remove('show');
                 const lastColumn = mainContentEl.querySelector('.content-column:last-child');
                 if (lastColumn) lastColumn.classList.add('active');
@@ -173,9 +305,18 @@
                     itemEl.textContent = itemKey;
                     itemEl.addEventListener('click', () => handleItemClick(depth, itemKey));
                     switch (config.listStyle) {
-                        case 'icon-button': itemEl.className = 'icon-button'; itemEl.style.backgroundColor = typeColors[itemKey] || '#ccc'; break;
-                        case 'color-text': itemEl.className = 'list-item'; itemEl.style.color = itemColors[itemKey] || '#333'; itemEl.style.fontWeight = 'bold'; break;
-                        default: itemEl.className = 'list-item'; break;
+                        case 'icon-button':
+                            itemEl.className = 'icon-button';
+                            itemEl.style.backgroundColor = typeColors[itemKey] || '#ccc';
+                            break;
+                        case 'color-text':
+                            itemEl.className = 'list-item';
+                            itemEl.style.color = itemColors[itemKey] || '#333';
+                            itemEl.style.fontWeight = 'bold';
+                            break;
+                        default:
+                            itemEl.className = 'list-item';
+                            break;
                     }
                     container.appendChild(itemEl);
                 });
@@ -189,16 +330,21 @@
             }
         };
         
-        const refreshTopAd = () => { /* 이전과 동일, 생략 가능 */ };
-        const handleAdClick = () => { /* 이전과 동일, 생략 가능 */ };
+        const refreshTopAd = () => { /* 이전과 동일 */ };
+        const handleAdClick = () => { /* 이전과 동일 */ };
 
         const init = () => {
             if (isAdmin) console.log("운영자 모드 활성화.");
             sidebarEl.innerHTML = `<h1>포켓몬 정보</h1><ul class="nav-menu">
-                <li data-category="pokemonType">포켓몬 타입</li><li data-category="pokemonGrade">포켓몬 등급</li>
-                <li data-category="item">아이템</li><li data-category="rune">룬</li><li data-category="chip">칩</li>
-                <li data-category="recommendedDeck">추천 덱</li><li data-category="calendar">캘린더</li>
-                <li data-category="tips">팁 & 노하우</li></ul>`;
+                <li data-category="pokemonType">포켓몬 타입</li>
+                <li data-category="pokemonGrade">포켓몬 등급</li>
+                <li data-category="item">아이템</li>
+                <li data-category="rune">룬</li>
+                <li data-category="chip">칩</li>
+                <li data-category="recommendedDeck">추천 덱</li>
+                <li data-category="calendar">캘린더</li>
+                <li data-category="tips">팁 & 노하우</li>
+            </ul>`;
             const navItems = sidebarEl.querySelectorAll('.nav-menu li');
             navItems.forEach(item => {
                 item.addEventListener('click', () => {
