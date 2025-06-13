@@ -3,495 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 도감</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <title>포켓몬 도감 정보</title>
     <style>
-        /* 기본 스타일은 유지하되, 복잡한 레이아웃 제어 CSS는 제거 및 단순화했습니다. */
+        /* 기본 스타일링: 보기 편하도록 최소한으로 구성 */
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
             display: flex;
-            min-height: 100vh;
+            background-color: #f0f2f5;
+            height: 100vh;
         }
         .sidebar {
+            width: 200px;
             background-color: #2c3e50;
-            color: #ecf0f1;
-            width: 250px;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            position: fixed;
-            height: 100%;
-            overflow-y: auto;
-            z-index: 500;
+            color: white;
+            padding: 15px;
             flex-shrink: 0;
         }
-        .sidebar h2 {
-            font-size: 1.8em;
-            margin-bottom: 30px;
-            color: #3498db;
+        .sidebar h1 {
+            font-size: 1.5em;
             text-align: center;
+            margin-bottom: 20px;
         }
-        .sidebar ul { list-style: none; padding: 0; }
-        .sidebar ul li { margin-bottom: 10px; }
-        .sidebar ul li a {
-            color: #ecf0f1;
-            text-decoration: none;
-            padding: 10px 15px;
-            display: block;
+        .sidebar .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar .nav-menu li {
+            padding: 12px 15px;
+            margin-bottom: 5px;
             border-radius: 5px;
-            transition: background-color 0.3s ease;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .sidebar ul li a:hover, .sidebar ul li a.active {
+        .sidebar .nav-menu li:hover {
             background-color: #34495e;
-            color: #ffffff;
         }
-        .main-content-wrapper {
-            margin-left: 250px;
+        .sidebar .nav-menu li.active {
+            background-color: #3498db;
+        }
+        .main-content {
             flex-grow: 1;
             padding: 20px;
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
         }
-
-        .ads-container {
-            width: 100%;
-            min-height: 90px;
-            background-color: #e0e0e0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
+        .content-header {
+            background-color: white;
+            padding: 20px;
             border-radius: 8px;
-            overflow: hidden;
-            text-align: center;
-            font-size: 0.9em;
-            color: #666;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-
-        .content-area {
-            flex-grow: 1;
+        .content-header h2 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #2c3e50;
+        }
+        .content-body {
             display: flex;
+            flex-grow: 1;
             gap: 20px;
         }
-        .content-section {
-            display: none; /* 기본 숨김 */
-            flex-direction: column;
-            flex-grow: 1;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 20px;
-            min-height: 600px;
-        }
-        .content-section.active {
-            display: flex; /* 활성화 시 보임 */
-        }
-        #dynamic-content-section .level-column-wrapper {
-             display: flex;
-             gap: 20px;
-             width: 100%;
-             height: 100%;
-        }
-
-        /* JS가 컬럼 너비와 표시 여부를 직접 제어하므로, CSS에서는 기본 구조만 정의 */
-        .main-list-column, .main-detail-column {
-            background-color: #f9f9f9;
+        .sub-nav-container {
+            width: 220px;
+            background-color: white;
             padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #eee;
-            min-height: 400px;
-            overflow-y: auto;
-            display: none; /* JS로 제어 */
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            flex-shrink: 0;
         }
-        
-        /* 컬럼 제목 및 목록 아이템 스타일 */
-        .main-list-column h3, .main-detail-column h3 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
-        .main-list-column ul { list-style: none; padding: 0; }
-        .main-list-column ul li { margin-bottom: 8px; }
-        .main-list-column ul li a {
-            display: block;
-            padding: 8px 10px;
-            background-color: #ecf0f1;
+        .sub-nav-container .list-item {
+            padding: 10px;
+            margin-bottom: 5px;
             border-radius: 4px;
-            text-decoration: none;
-            color: #333;
-            transition: background-color 0.2s ease;
+            cursor: pointer;
+            border: 1px solid #eee;
         }
-        .main-list-column ul li a:hover, .main-list-column ul li a.active {
+        .sub-nav-container .list-item:hover {
+            background-color: #f5f5f5;
+        }
+        .sub-nav-container .list-item.active {
             background-color: #3498db;
-            color: #fff;
+            color: white;
+            border-color: #3498db;
         }
-
-        /* 상세 콘텐츠 스타일 */
-        .detail-content { padding: 10px; }
-        .detail-content h4 { font-size: 2em; margin-bottom: 10px; color: #2c3e50; }
-        .detail-content img { max-width: 150px; height: auto; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .detail-content p { line-height: 1.6; margin-bottom: 10px; }
-        .detail-content strong { color: #3498db; }
-        .back-button { /* 수정됨: 모든 상세 화면에서 보이도록 JS로 제어 */
+        .content-display-area {
+            flex-grow: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .content-display-area h3 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .content-display-area ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .content-display-area li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        /* pre 태그는 팁&노하우에서 줄바꿈을 위해 사용됩니다. */
+        pre {
+            white-space: pre-wrap; /* 자동 줄바꿈 */
+            word-wrap: break-word; /* 긴 단어 줄바꿈 */
+            font-family: inherit;
+            font-size: 1em;
+            line-height: 1.6;
+        }
+        /* 애드센스 광고 슬롯 스타일 (예시) */
+        .ad-slot {
+            width: 100%;
+            min-height: 100px; /* 너비가 0이 되는 것을 방지 */
+            background-color: #fafafa;
+            border: 1px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-top: 20px;
-            float: right;
-            display: none; /* JS로 제어 */
-        }
-
-        /* 모바일 반응형 스타일 */
-        @media (max-width: 1024px) {
-            body { flex-direction: column; }
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                box-shadow: none;
-                padding: 10px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-            .sidebar ul {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            .sidebar ul li { margin: 5px; }
-            .main-content-wrapper { margin-left: 0; padding: 15px; }
-            .content-area { flex-direction: column; gap: 0; }
-            .content-section { padding: 15px; height: auto; width: 100%; }
-            #dynamic-content-section .level-column-wrapper {
-                 flex-direction: column;
-            }
-            .main-list-column, .main-detail-column {
-                width: 100% !important; /* 모바일에서는 항상 전체 너비 */
-                min-height: auto;
-            }
         }
     </style>
 </head>
 <body>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2125965839205311" crossorigin="anonymous"></script>
 
-    <div class="sidebar">
-        <h2>포켓몬 도감</h2>
-        <ul>
-            <li><a href="#" onclick="showSection('pokemon-type', this)" class="active">포켓몬 타입</a></li>
-            <li><a href="#" onclick="showSection('pokemon-grade', this)">포켓몬 등급</a></li>
-            <li><a href="#" onclick="showSection('item', this)">아이템</a></li>
-            <li><a href="#" onclick="showSection('rune', this)">룬</a></li>
-            <li><a href="#" onclick="showSection('chip', this)">칩</a></li>
-            <li><a href="#" onclick="showSection('recommended-decks', this)">추천 덱</a></li>
-            <li><a href="#" onclick="showSection('calendar', this)">캘린더</a></li>
-            <li><a href="#" onclick="showSection('tips-knowhow', this)">팁 & 노하우</a></li>
+    <aside class="sidebar">
+        <h1>포켓몬 도감</h1>
+        <ul class="nav-menu" id="main-nav">
+            <li data-category="pokemonType">포켓몬 타입</li>
+            <li data-category="pokemonGrade">포켓몬 등급</li>
+            <li data-category="item">아이템</li>
+            <li data-category="chip">칩</li>
+            <li data-category="recommendedDeck">추천 덱</li>
+            <li data-category="calendar">캘린더</li>
+            <li data-category="tips">팁 & 노하우</li>
         </ul>
-    </div>
+    </aside>
 
-    <div class="main-content-wrapper">
-        <div class="ads-container" id="top-ad-container">
-            <ins class="adsbygoogle"
-                 style="display:block; text-align:center;"
-                 data-ad-client="ca-pub-2125965839205311"
-                 data-ad-slot="5532734526"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-        </div>
-
-        <div class="content-area">
-            <div id="initial-blank-section" class="content-section active">
-                <h1 class="text-3xl font-bold mb-4">환영합니다!</h1>
-                <p>좌측 메뉴에서 원하는 정보를 선택해주세요.</p>
-            </div>
-
-            <div id="dynamic-content-section" class="content-section">
-                <h1 id="section-title" class="text-3xl font-bold mb-4"></h1>
-                <div class="level-column-wrapper">
-                    <div class="main-list-column" id="main-list-column"></div>
-                    <div class="main-detail-column" id="main-detail-column"></div>
+    <main class="main-content">
+        <header class="content-header">
+            <h2 id="main-title">환영합니다!</h2>
+        </header>
+        <div class="content-body">
+            <div class="sub-nav-container" id="sub-nav-container">
                 </div>
-            </div>
+            <div class="content-display-area" id="content-display-area">
+                <p>왼쪽 메뉴에서 카테고리를 선택하세요.</p>
+                </div>
         </div>
-    </div>
-    
-    <div id="generalModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center;">
-        <div class="modal-content" style="background-color: #fefefe; margin: auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); position: relative;">
-            <span class="close-button" onclick="closeModal('generalModal')" style="color: #aaa; position: absolute; top: 10px; right: 15px; font-size: 30px; font-weight: bold; cursor: pointer;">&times;</span>
-            <div class="modal-body" id="generalModalBody">
-                 </div>
-        </div>
-    </div>
-
+    </main>
 
     <script src="data.js"></script>
+
     <script>
-        // 전역 변수
-        let currentActiveSectionType = 'initial';
-        let navigationStack = []; // { type, level, filterValue, detailId }
+        // DOM 요소 가져오기
+        const mainNav = document.getElementById('main-nav');
+        const mainTitle = document.getElementById('main-title');
+        const subNavContainer = document.getElementById('sub-nav-container');
+        const contentDisplayArea = document.getElementById('content-display-area');
 
-        // DOM 요소 캐싱
-        const mainListColumn = document.getElementById('main-list-column');
-        const mainDetailColumn = document.getElementById('main-detail-column');
-        const dynamicContentSection = document.getElementById('dynamic-content-section');
-        const initialBlankSection = document.getElementById('initial-blank-section');
-        const sectionTitleElement = document.getElementById('section-title');
+        let currentCategory = ''; // 현재 선택된 메인 카테고리를 저장하는 변수
 
-        // --- 유틸리티 ---
-        const isMobile = () => window.innerWidth <= 1024;
-
-        function getSectionTitle(type) {
-            const titles = {
-                'pokemon-type': '포켓몬 타입별 정보',
-                'pokemon-grade': '포켓몬 등급별 정보',
-                'item': '아이템 정보',
-                'rune': '룬 정보',
-                'chip': '칩 정보',
-                'recommended-decks': '추천 덱',
-                'calendar': '이벤트 캘린더',
-                'tips-knowhow': '팁 & 노하우'
-            };
-            return titles[type] || '정보';
-        }
-
-        // --- 화면 전환 핵심 로직 (수정됨) ---
-        function updateLayout(levelState) {
-            const isFinalView = (levelState.level === 'Lev3_Final' || levelState.level === 'Lev4_Final');
-
-            if (isMobile()) {
-                // 모바일: 한 번에 하나의 컬럼만 표시
-                const showList = (levelState.level === 'Lev2_List');
-                mainListColumn.style.display = showList ? 'block' : 'none';
-                mainDetailColumn.style.display = showList ? 'none' : 'block';
-            } else {
-                // PC: 요구사항에 따른 분할 화면
-                if (isFinalView) {
-                    // 최종 화면: Lev.1 + Lev.3/4 (Lev.2 목록 숨김)
-                    mainListColumn.style.display = 'none';
-                    mainDetailColumn.style.display = 'block';
-                    mainDetailColumn.style.width = '100%';
-                } else {
-                    // 중간 단계: Lev.1 + Lev.2 + Lev.3 (모든 컬럼 표시)
-                    mainListColumn.style.display = 'block';
-                    mainListColumn.style.width = '35%';
-                    mainDetailColumn.style.display = 'block';
-                    mainDetailColumn.style.width = '65%';
+        // 메인 네비게이션 클릭 이벤트 처리
+        mainNav.addEventListener('click', function(e) {
+            if (e.target.tagName === 'LI') {
+                // 'active' 클래스 관리
+                const currentActive = mainNav.querySelector('.active');
+                if (currentActive) {
+                    currentActive.classList.remove('active');
                 }
+                e.target.classList.add('active');
+
+                // 카테고리 표시
+                currentCategory = e.target.dataset.category;
+                showCategoryView(currentCategory);
             }
-            // "목록으로 돌아가기" 버튼은 최종 화면이거나, 모바일에서 상세 화면일 때 표시
-            const backButton = mainDetailColumn.querySelector('.back-button');
-            if (backButton) {
-                backButton.style.display = (isFinalView || (isMobile() && !mainListColumn.style.display !== 'none')) ? 'inline-block' : 'none';
-            }
-        }
-
-        function navigateTo(levelState) {
-            // 중복 상태 방지
-            const lastState = navigationStack[navigationStack.length - 1];
-            if (!lastState || JSON.stringify(lastState) !== JSON.stringify(levelState)) {
-                navigationStack.push(levelState);
-            }
-            renderContent(levelState);
-        }
-
-        function goBack() {
-            if (navigationStack.length <= 1) return; // 더 이상 뒤로 갈 수 없음
-            navigationStack.pop(); // 현재 상태 제거
-            const prevState = navigationStack[navigationStack.length - 1];
-            renderContent(prevState);
-        }
-
-        function renderContent(levelState) {
-            currentActiveSectionType = levelState.type;
-            sectionTitleElement.textContent = getSectionTitle(levelState.type);
-            
-            // 모든 active 클래스 초기화
-            document.querySelectorAll('.main-list-column ul li a.active').forEach(el => el.classList.remove('active'));
-
-            // 콘텐츠 렌더링
-            switch (levelState.level) {
-                case 'Lev2_List':
-                    renderLev2List(levelState.type);
-                    // 초기 진입 시, 상세 컬럼을 비우거나 기본값을 표시
-                    mainDetailColumn.innerHTML = `<div class="p-4 text-gray-500">왼쪽 목록에서 항목을 선택하세요.</div>`;
-                    break;
-                case 'Lev3_List': // 포켓몬 전용
-                    renderLev2List(levelState.type, levelState.filterValue); // Lev.2는 활성화 상태 유지
-                    renderPokemonNameList(levelState.filterValue, levelState.type);
-                    break;
-                case 'Lev3_Final':
-                    renderLev2List(levelState.type, levelState.filterValue); // Lev.2는 활성화 상태 유지
-                    renderLev3FinalDetail(levelState);
-                    break;
-                case 'Lev4_Final': // 포켓몬 전용
-                    renderLev2List(levelState.type, levelState.filterValue);
-                    renderPokemonNameList(levelState.filterValue, levelState.type, levelState.detailId);
-                    renderPokemonFinalDetail(levelState.detailId);
-                    break;
-            }
-             updateLayout(levelState);
-        }
-
-        // --- Lev.1 사이드바 클릭 ---
-        function showSection(sectionType, clickedElement) {
-            initialBlankSection.classList.remove('active');
-            dynamicContentSection.classList.add('active');
-
-            document.querySelectorAll('.sidebar ul li a').forEach(link => link.classList.remove('active'));
-            clickedElement.classList.add('active');
-
-            navigationStack = []; // 스택 초기화
-            navigateTo({ type: sectionType, level: 'Lev2_List' });
-            showAd();
-        }
-
-        // --- Lev.2 목록 렌더링 ---
-        function renderLev2List(type, activeFilter) {
-            let html = '';
-            let title = '';
-            let items = [];
-
-            // 타입별 데이터 및 제목 설정
-            if (type === 'pokemon-type') {
-                title = '포켓몬 타입';
-                items = [...new Set(window.pokemonData.flatMap(p => p.type))].sort();
-            } else if (type === 'pokemon-grade') {
-                title = '포켓몬 등급';
-                const gradeOrder = {'SS':3, 'S+':2, 'S':1};
-                items = [...new Set(window.pokemonData.map(p => p.grade))].filter(g => g in gradeOrder).sort((a,b) => gradeOrder[b] - gradeOrder[a]);
-            } else if (type === 'item') {
-                title = '아이템 색상';
-                items = ['빨간색', '주황색', '보라색'];
-            } else if (type === 'rune') {
-                title = '룬 종류';
-                items = ['전투광', '금강', '파워', '견고', '신속', '예리', '마력', '지혜'];
-            } else if (type === 'chip') {
-                title = '칩 종류';
-                items = ['개구리가시', '공포', '귀갑', '늑대행자', '방패', '뱀유령', '초능', '헌제', '화무'];
-            } else if (type === 'recommended-decks') {
-                title = '덱 속성';
-                items = ['불', '물', '풀', '고스트'];
-            } else if (type === 'calendar') {
-                title = '이벤트 종류';
-                items = ['랭킹뽑기', '한정뽑기']; // 수정됨: 요구사항 반영
-            } else if (type === 'tips-knowhow') {
-                title = '가이드 종류';
-                items = ['육성가이드', '성급기준', '조각 활용'];
-            }
-
-            // HTML 생성
-            items.forEach(item => {
-                const isActive = (item === activeFilter) ? 'active' : '';
-                const hasSubLevel = ['pokemon-type', 'pokemon-grade', 'item'].includes(type);
-                const nextLevel = hasSubLevel ? 'Lev3_List' : 'Lev3_Final';
-                const detailId = hasSubLevel ? undefined : item;
-
-                html += `<li><a href="#" class="${isActive}" onclick="event.preventDefault(); navigateTo({type: '${type}', level: '${nextLevel}', filterValue: '${item}', detailId: '${detailId}'})">${item}</a></li>`;
-            });
-
-            mainListColumn.innerHTML = `<h3>${title}</h3><ul>${html}</ul>`;
-        }
-
-        // --- Lev.3 목록 렌더링 (포켓몬/아이템 전용) ---
-        function renderPokemonNameList(filterValue, type, activeId) {
-            const pokemons = window.pokemonData.filter(p => 
-                type === 'pokemon-type' ? p.type.includes(filterValue) : p.grade === filterValue
-            );
-
-            let html = '';
-            pokemons.forEach(p => {
-                const isActive = (p.id === activeId) ? 'active' : '';
-                html += `<li><a href="#" class="${isActive}" onclick="event.preventDefault(); navigateTo({type: '${type}', level: 'Lev4_Final', filterValue: '${filterValue}', detailId: '${p.id}'})">${p.name}</a></li>`;
-            });
-
-            mainDetailColumn.innerHTML = `
-                <h3>${filterValue} 포켓몬 목록</h3>
-                <ul>${html}</ul>
-                <button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로</button>
-            `;
-        }
-
-        // --- 최종 상세 화면 렌더링 (Lev.3 Final / Lev.4 Final) ---
-        function renderLev3FinalDetail(levelState) {
-            let detail;
-            let html = '';
-
-            if (levelState.type === 'item') {
-                // 아이템은 Lev.2(색상)을 클릭하면 해당 색상의 아이템 목록(Lev.3)이 바로 최종화면이 됨
-                const items = Object.values(window.itemDetails).filter(i => i.color === levelState.filterValue);
-                html += `<h3>${levelState.filterValue} 아이템</h3>`;
-                items.forEach(item => {
-                    html += `<div class="p-2 border-b"><strong>${item.name}</strong>: ${item.description}</div>`;
-                });
-            } else if (levelState.type === 'rune' || levelState.type === 'chip') {
-                detail = (levelState.type === 'rune' ? window.runeDetails : window.chipDetails)[levelState.detailId];
-                html = `<h3>${detail.name} 정보</h3><p>${detail.description}</p>`;
-            } else if (levelState.type === 'recommended-decks') {
-                 detail = Object.values(window.recommendedDeckDetails).find(d => d.type === levelState.filterValue);
-                 html = `<h3>${detail.name}</h3><p>${detail.description}</p><div><strong>구성:</strong> ${detail.pokemons.join(', ')}</div>`;
-            } else if (levelState.type === 'calendar') {
-                const events = window.calendarEvents.filter(e => e.type === levelState.filterValue);
-                html += `<h3>${levelState.filterValue} 일정</h3>`;
-                events.forEach(e => {
-                     html += `<div class="p-2 border-b"><strong>${e.title} (${e.date})</strong>: ${e.description}</div>`;
-                });
-            } else if (levelState.type === 'tips-knowhow') {
-                 detail = window.tipsAndKnowhow.find(t => t.category === levelState.filterValue);
-                 html = `<h3>${detail.title}</h3><div>${detail.content}</div>`;
-            }
-
-            mainDetailColumn.innerHTML = `<div class="detail-content">${html}</div><button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로</button>`;
-        }
-
-        function renderPokemonFinalDetail(pokemonId) {
-            const pokemon = window.pokemonData.find(p => p.id === pokemonId);
-            if (!pokemon) return;
-
-            const html = `
-                <h3>${pokemon.name} 상세 정보</h3>
-                <div class="detail-content">
-                    <img src="${pokemon.image}" alt="${pokemon.name}">
-                    <h4>${pokemon.name} (${pokemon.grade})</h4>
-                    <p><strong>타입:</strong> ${pokemon.type.join(', ')}</p>
-                    <p>${pokemon.description}</p>
-                    </div>
-                <button onclick="goBack()" class="back-button bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">목록으로</button>
-            `;
-            mainDetailColumn.innerHTML = html;
-        }
-
-        // --- 모달 로직 (변경 없음) ---
-        function openModalItemDetail(names, type) { /* ... 기존 코드와 동일 ... */ }
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // --- 광고 로직 (변경 없음) ---
-        let adRetryCount = 0;
-        const maxAdRetries = 5;
-        function showAd() {
-            const adsContainer = document.getElementById('top-ad-container');
-            if (!adsContainer) return;
-            adsContainer.innerHTML = `<ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-client="ca-pub-2125965839205311" data-ad-slot="5532734526" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
-            try {
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            } catch (e) {
-                console.error("AdSense push error:", e);
-            }
-        }
-        
-        // --- 초기화 ---
-        document.addEventListener('DOMContentLoaded', () => {
-            initialBlankSection.classList.add('active');
-            showAd();
-            window.addEventListener('resize', () => {
-                if (navigationStack.length > 0) {
-                    updateLayout(navigationStack[navigationStack.length-1]);
-                }
-            });
         });
+
+        // 서브 네비게이션 클릭 이벤트 처리 (이벤트 위임)
+        subNavContainer.addEventListener('click', function(e) {
+            const target = e.target.closest('.list-item');
+            if (target) {
+                // 'active' 클래스 관리
+                const currentActive = subNavContainer.querySelector('.active');
+                if (currentActive) {
+                    currentActive.classList.remove('active');
+                }
+                target.classList.add('active');
+
+                const subCategoryKey = target.dataset.key;
+                showSubCategoryContent(subCategoryKey);
+            }
+        });
+
+        // 메인 카테고리 뷰를 표시하는 함수
+        function showCategoryView(category) {
+            let title = '';
+            let subNavItems = [];
+
+            switch (category) {
+                case 'pokemonType':
+                    title = '포켓몬 타입별 정보';
+                    // database 객체에서 키들을 가져와 subNavItems 배열을 만듭니다.
+                    if (database.pokemonByType) subNavItems = Object.keys(database.pokemonByType);
+                    break;
+                case 'pokemonGrade':
+                    title = '포켓몬 등급별 정보';
+                    if (database.pokemonByGrade) subNavItems = Object.keys(database.pokemonByGrade);
+                    break;
+                case 'item':
+                    title = '아이템 정보';
+                    if (database.itemByColor) subNavItems = Object.keys(database.itemByColor);
+                    break;
+                case 'chip':
+                    title = '칩 정보';
+                    if (database.chipInfo) subNavItems = Object.keys(database.chipInfo);
+                    break;
+                case 'recommendedDeck':
+                    title = '추천 덱';
+                    if (database.recommendedDecks) subNavItems = Object.keys(database.recommendedDecks);
+                    break;
+                case 'calendar':
+                    title = '캘린더';
+                    if (database.calendarEvents) subNavItems = Object.keys(database.calendarEvents);
+                    break;
+                case 'tips':
+                    title = '팁 & 노하우';
+                    if (database.tipsAndKnowhow) subNavItems = Object.keys(database.tipsAndKnowhow);
+                    break;
+            }
+
+            mainTitle.textContent = title;
+
+            // 서브 네비게이션(Lev.2) 생성
+            subNavContainer.innerHTML = ''; // 기존 내용 초기화
+            subNavItems.forEach(key => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'list-item';
+                itemDiv.textContent = key;
+                itemDiv.dataset.key = key; // 클릭 시 어떤 항목인지 식별하기 위해 데이터 속성 사용
+                subNavContainer.appendChild(itemDiv);
+            });
+            
+            // 컨텐츠 표시 영역(Lev.3) 초기화
+            contentDisplayArea.innerHTML = '<p>왼쪽 목록에서 항목을 선택하세요.</p>';
+        }
+
+        // 서브 카테고리(Lev.3/4) 내용을 표시하는 함수
+        function showSubCategoryContent(key) {
+            let contentHTML = '';
+            let data;
+
+            // 현재 메인 카테고리에 따라 다른 데이터를 가져와 처리
+            switch (currentCategory) {
+                case 'pokemonType':
+                    data = database.pokemonByType ? database.pokemonByType[key] : undefined;
+                    if (data) {
+                        contentHTML = `<h3>${key} 포켓몬 목록</h3><ul>${data.map(name => `<li>${name}</li>`).join('')}</ul>`;
+                    }
+                    break;
+                case 'pokemonGrade':
+                    data = database.pokemonByGrade ? database.pokemonByGrade[key] : undefined;
+                    if (data) {
+                        contentHTML = `<h3>${key} 포켓몬 목록</h3><ul>${data.map(name => `<li>${name}</li>`).join('')}</ul>`;
+                    }
+                    break;
+                case 'item':
+                     data = database.itemByColor ? database.itemByColor[key] : undefined;
+                    if (data) {
+                        contentHTML = `<h3>${key} 아이템 목록</h3><ul>${data.map(name => `<li>${name}</li>`).join('')}</ul>`;
+                    }
+                    break;
+                case 'chip':
+                    data = database.chipInfo ? database.chipInfo[key] : undefined;
+                    // 데이터와 description 속성이 모두 있는지 확인 (TypeError 방지)
+                    if (data && data.description) {
+                        contentHTML = `<h3>${key} 설명</h3><p>${data.description}</p>`;
+                    }
+                    break;
+                case 'recommendedDeck':
+                    data = database.recommendedDecks ? database.recommendedDecks[key] : undefined;
+                    if (data) {
+                        contentHTML = `<h3>${key} 구성원</h3><ul>${data.map(name => `<li>${name}</li>`).join('')}</ul>`;
+                    }
+                    break;
+                case 'calendar':
+                    data = database.calendarEvents ? database.calendarEvents[key] : undefined;
+                    if (data) {
+                        contentHTML = `<h3>${key} 정보</h3><ul>${data.map(info => `<li>${info}</li>`).join('')}</ul>`;
+                    }
+                    break;
+                case 'tips':
+                    data = database.tipsAndKnowhow ? database.tipsAndKnowhow[key] : undefined;
+                    if (data) {
+                        // <pre> 태그로 감싸서 줄바꿈이 그대로 표시되도록 함
+                        contentHTML = `<h3>${key}</h3><pre>${data}</pre>`;
+                    }
+                    break;
+            }
+
+            // 데이터가 없는 경우의 메시지 처리
+            if (!contentHTML) {
+                contentHTML = '<p>표시할 정보가 없습니다.</p>';
+            }
+
+            contentDisplayArea.innerHTML = contentHTML;
+
+            // 애드센스 오류 해결: 컨텐츠가 표시된 후 광고를 로드
+            // 아래 주석을 풀고 실제 애드센스 코드를 넣으세요.
+            /*
+            setTimeout(function() {
+                try {
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                    console.log('AdSense push attempted.');
+                } catch (e) {
+                    console.error('AdSense push failed:', e);
+                }
+            }, 100); // 약간의 지연 시간을 주어 컨테이너 너비가 계산될 시간을 확보
+            */
+        }
     </script>
+
 </body>
 </html>
