@@ -9,16 +9,14 @@
             --sidebar-width: 220px;
             --primary-color: #3498db;
             --background-color: #f0f2f5;
-            --top-ad-banner-height: 90px; /* 광고 배너 높이 */
+            --top-ad-banner-height: 90px;
         }
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--background-color);
-            /* 상단 고정 광고 배너만큼 콘텐츠 시작 위치를 내립니다. */
             padding-top: var(--top-ad-banner-height);
         }
-        /* --- 상단 고정 광고 배너 --- */
         .top-ad-banner {
             position: fixed;
             top: 0;
@@ -68,7 +66,6 @@
         }
         .column-hidden { display: none; }
 
-        /* --- 포켓몬 타입 아이콘 버튼 스타일 --- */
         .type-icon-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -83,10 +80,10 @@
             cursor: pointer;
             border: 2px solid rgba(0,0,0,0.1);
             transition: transform 0.2s;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
         .type-icon:hover { transform: scale(1.05); }
 
-        /* --- 상세 정보 스타일 --- */
         .detail-header { text-align: center; }
         .detail-header img { max-width: 150px; margin-bottom: 10px; }
         .detail-header h2 { color: var(--primary-color); }
@@ -94,11 +91,18 @@
         .detail-section h3 {
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 8px; margin-bottom: 12px;
-            color: #c0392b; /* 소제목 색상 */
+            color: #c0392b;
         }
         
-        /* --- 모바일 반응형 --- */
         .top-controls { display: none; }
+        .btn-back-pc {
+            display: none;
+            margin-bottom: 15px; padding: 8px 12px;
+            background-color: #6c757d; color: white;
+            border: none; border-radius: 4px; cursor: pointer;
+        }
+        .btn-back-pc:hover { background-color: #5a6268; }
+
         @media (max-width: 768px) {
             body { padding-top: calc(var(--top-ad-banner-height) + 50px); }
             .top-controls {
@@ -114,7 +118,8 @@
             .sidebar.show { transform: translateX(0); }
             .app-container { height: calc(100vh - (var(--top-ad-banner-height) + 50px)); }
             .main-content { width: 100%; }
-            .content-column { width: 100%; min-width: 100%; box-sizing: border-box; }
+            .content-column { width: 100%; min-width: 100%; box-sizing: border-box; border-right: none; }
+            .btn-back-pc { display: none !important; }
         }
     </style>
 </head>
@@ -132,19 +137,17 @@
 
     <div class="top-controls">
         <button id="btn-menu">☰ 메뉴</button>
-        <h2 id="mobile-title" style="margin:0; font-size:1.1em;"></h2>
-        <button id="btn-back-mobile" style="display: none;">‹ 뒤로</button>
+        <h2 id="mobile-title" style="margin:0; font-size:1.1em; color:white;"></h2>
+        <button id="btn-back-mobile" style="display: none; background: none; border: none; color: white; font-size: 1.1em;">‹ 뒤로</button>
     </div>
 
     <script src="data.js"></script>
     <script>
-        // --- 운영자 모드 및 무효 트래픽 방지 초기 설정 ---
         const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
         if (isAdmin) {
             console.log("운영자 모드 활성화: 광고가 표시되지 않습니다.");
         }
 
-        // --- DOM 요소 ---
         const sidebarEl = document.getElementById('sidebar');
         const columns = {
             lev2: document.getElementById('column-lev2'),
@@ -154,6 +157,7 @@
         const btnMenu = document.getElementById('btn-menu');
         const btnBackMobile = document.getElementById('btn-back-mobile');
         const mobileTitle = document.getElementById('mobile-title');
+        const topAdBanner = document.getElementById('top-ad-banner');
 
         let navigationStack = [];
 
@@ -163,7 +167,7 @@
                 renderView();
             }
         }
-        
+
         function renderView() {
             const isMobile = window.innerWidth <= 768;
             Object.values(columns).forEach(col => col.classList.add('column-hidden'));
@@ -171,7 +175,7 @@
             if (navigationStack.length === 0) {
                 btnBackMobile.style.display = 'none';
                 mobileTitle.textContent = '메뉴 선택';
-                if(isMobile) sidebarEl.classList.remove('show');
+                if (isMobile) sidebarEl.classList.remove('show');
                 return;
             }
 
@@ -179,12 +183,10 @@
             const config = categoryConfig[currentState.category];
             mobileTitle.textContent = currentState.key || config.title;
 
-            // 상세 화면으로 전환 시 광고 새로고침
             if (config.renderType[currentState.level - 1] === 'detail') {
                 refreshTopAd();
             }
 
-            // 화면 렌더링 로직 (생략 - 이전과 동일)
             if (isMobile) {
                 sidebarEl.classList.remove('show');
                 const lastVisibleColumn = renderColumn(currentState);
@@ -209,22 +211,21 @@
             const config = categoryConfig[category];
             if (!config || level > config.levels.length) return null;
             
-            const columnEl = columns[config.levels[level-1]];
+            const columnEl = columns[config.levels[level - 1]];
             columnEl.innerHTML = '';
             
             const backButtonPC = document.createElement('button');
-            backButtonPC.className = 'btn-back-pc'; // CSS 클래스명 변경
+            backButtonPC.className = 'btn-back-pc';
             backButtonPC.textContent = '‹ 목록으로 돌아가기';
             backButtonPC.onclick = goBack;
             columnEl.appendChild(backButtonPC);
-            if(level > 1) backButtonPC.style.display = 'block';
+            if (level > 1) backButtonPC.style.display = 'block';
 
-            const sourceData = database[config.dataKeys[level-1]];
+            const sourceData = database[config.dataKeys[level - 1]];
+            const title = document.createElement('h2');
+            title.textContent = key || config.title;
 
-            // 포켓몬 타입 아이콘 렌더링
             if (category === 'pokemonType' && level === 1) {
-                const title = document.createElement('h2');
-                title.textContent = config.title;
                 columnEl.appendChild(title);
                 const container = document.createElement('div');
                 container.className = 'type-icon-container';
@@ -237,12 +238,9 @@
                     container.appendChild(itemEl);
                 });
                 columnEl.appendChild(container);
-            } // 일반 리스트 렌더링
-            else if (config.renderType[level-1] === 'list') {
-                const listData = (level === 1) ? Object.keys(sourceData) : (sourceData[key] || []);
-                const title = document.createElement('h2');
-                title.textContent = key || config.title;
+            } else if (config.renderType[level - 1] === 'list') {
                 columnEl.appendChild(title);
+                const listData = (level === 1) ? Object.keys(sourceData) : (sourceData[key] || []);
                 listData.forEach(itemKey => {
                     const itemEl = document.createElement('div');
                     itemEl.className = 'list-item';
@@ -250,8 +248,7 @@
                     itemEl.onclick = () => handleItemClick(level + 1, category, itemKey);
                     columnEl.appendChild(itemEl);
                 });
-            } // 상세 정보 렌더링
-            else if (config.renderType[level-1] === 'detail') {
+            } else if (config.renderType[level - 1] === 'detail') {
                 const detailData = sourceData[key];
                 const contentDiv = document.createElement('div');
                 if (detailData) {
@@ -267,43 +264,32 @@
             navigationStack.push({ level: nextLevel, category, key });
             renderView();
         }
-        
-        // --- AdSense 로직 ---
-        const topAdBanner = document.getElementById('top-ad-banner');
+
         function refreshTopAd() {
             if (isAdmin || localStorage.getItem('adBlockUser') === new Date().toISOString().split('T')[0]) {
-                topAdBanner.innerHTML = '<div style="color:#999; text-align:center;">운영자 모드 또는 어뷰징 방지 정책에 의해 광고가 숨김 처리되었습니다.</div>';
+                topAdBanner.innerHTML = `<div style="color:#999; text-align:center; width: 100%;">운영자 모드 또는 어뷰징 방지 정책에 의해 광고가 숨김 처리되었습니다.</div>`;
                 return;
             }
-            // 제공된 광고 코드를 여기에 삽입
             topAdBanner.innerHTML = `
-                <ins class="adsbygoogle"
-                     style="display:block"
+                <ins class="adsbygoogle" style="display:block; width:100%; height:90px;"
                      data-ad-client="ca-pub-2125965839205311"
-                     data-ad-slot="5532734526"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-            `;
+                     data-ad-slot="5532734526"></ins>`;
             try {
                 (window.adsbygoogle = window.adsbygoogle || []).push({});
-            } catch (e) {
-                console.error("AdSense push Error:", e);
-            }
+            } catch (e) { console.error("AdSense push Error:", e); }
         }
 
         function handleAdClick() {
             const now = new Date();
-            const today = now.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+            const today = now.toISOString().split('T')[0];
             const AD_CLICK_LIMIT = 5;
             const HOUR_IN_MS = 60 * 60 * 1000;
             
             let clickData = JSON.parse(localStorage.getItem('adClickData') || '{}');
 
-            // 자정이 지나면 초기화
             if (clickData.date !== today) {
                 clickData = { count: 0, time: 0, date: today };
             }
-
             if (!clickData.time || (now.getTime() - clickData.time > HOUR_IN_MS)) {
                 clickData.count = 1;
                 clickData.time = now.getTime();
@@ -313,16 +299,26 @@
             
             if (clickData.count >= AD_CLICK_LIMIT) {
                 console.warn(`광고 클릭 제한(${AD_CLICK_LIMIT}회) 초과. 오늘 하루 광고를 차단합니다.`);
-                localStorage.setItem('adBlockUser', today); // 차단된 날짜를 저장
-                refreshTopAd(); // 광고 즉시 숨김
+                localStorage.setItem('adBlockUser', today);
+                refreshTopAd();
             }
             localStorage.setItem('adClickData', JSON.stringify(clickData));
         }
 
         function init() {
-            // 사이드바 생성
-            sidebarEl.innerHTML = `<h1>포켓몬 정보</h1><ul class="nav-menu" id="main-nav">...</ul>`;
-            // 이벤트 리스너 연결
+            sidebarEl.innerHTML = `
+                <h1>포켓몬 정보</h1>
+                <ul class="nav-menu" id="main-nav">
+                    <li data-category="pokemonType">포켓몬 타입</li>
+                    <li data-category="pokemonGrade">포켓몬 등급</li>
+                    <li data-category="item">아이템</li>
+                    <li data-category="rune">룬</li>
+                    <li data-category="chip">칩</li>
+                    <li data-category="recommendedDeck">추천 덱</li>
+                    <li data-category="calendar">캘린더</li>
+                    <li data-category="tips">팁 & 노하우</li>
+                </ul>`;
+            
             document.getElementById('main-nav').addEventListener('click', (e) => {
                 if (e.target.tagName === 'LI') {
                     const category = e.target.dataset.category;
@@ -332,27 +328,22 @@
                     renderView();
                 }
             });
-            // 나머지 리스너들...
+
             btnBackMobile.addEventListener('click', goBack);
             btnMenu.addEventListener('click', () => sidebarEl.classList.toggle('show'));
             window.addEventListener('resize', renderView);
             
-            // 광고 클릭 감지 리스너
             if (!isAdmin) {
                 window.addEventListener('blur', () => {
-                    // 0.5초 이내에 다시 포커스가 돌아오면 무시 (창 전환 등)
                     setTimeout(() => {
                         if (document.hasFocus()) return;
                         handleAdClick();
                     }, 500);
                 });
             }
-
-            refreshTopAd(); // 초기 광고 로드
+            refreshTopAd();
             renderView();
         }
-
-        // --- 초기화 ---
         init();
     </script>
 </body>
