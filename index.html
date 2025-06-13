@@ -3,17 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 도감 정보 - 2.2단계 (PC/모바일 분리)</title>
+    <title>포켓몬 도감 정보 - 2.3단계 (버튼 수정)</title>
     <style>
-        :root {
-            --sidebar-width: 240px;
-            --primary-color: #3498db;
-            --background-color: #f4f6f9;
-        }
         body, h1, h2, ul, li { margin: 0; padding: 0; box-sizing: border-box; }
-        body { display: flex; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--background-color); }
+        body { display: flex; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f6f9; }
         .sidebar {
-            width: var(--sidebar-width); background-color: #2c3e50; color: white;
+            width: 240px; background-color: #2c3e50; color: white;
             padding: 20px; flex-shrink: 0;
         }
         .sidebar h1 { text-align: center; margin-bottom: 30px; }
@@ -22,25 +17,32 @@
             padding: 13px 20px; margin-bottom: 10px; border-radius: 8px;
             cursor: pointer; transition: background-color 0.2s;
         }
-        .sidebar .nav-menu li.active { background-color: var(--primary-color); }
-        .main-content { flex-grow: 1; display: flex; overflow-x: auto; position: relative; }
+        .sidebar .nav-menu li.active { background-color: #3498db; }
+        .main-content { flex-grow: 1; display: flex; overflow-x: auto; }
         .content-column {
             min-width: 320px; background-color: white;
             border-right: 1px solid #e9e9e9;
             padding: 25px;
         }
+        .content-column h2 { margin-top: 0; }
         .list-item {
             padding: 12px; margin-bottom: 8px; border-radius: 6px;
             cursor: pointer; border: 1px solid #ddd;
         }
+        .list-item:hover { background-color: #f0f0f0; }
         .btn-back {
             margin-bottom: 15px; padding: 8px 12px;
             background-color: #6c757d; color: white;
             border: none; border-radius: 4px; cursor: pointer;
         }
-        .detail-image { max-width: 150px; display: block; margin-bottom: 15px; border-radius: 8px; }
-        
-        /* --- 모바일 전용 스타일 --- */
+        .btn-back:hover { background-color: #5a6268; }
+        .detail-image {
+             max-width: 150px;
+             display: block;
+             margin-bottom: 15px;
+             border-radius: 8px;
+        }
+         /* --- 모바일 전용 스타일 --- */
         .top-controls { display: none; }
         @media (max-width: 768px) {
             .top-controls {
@@ -153,12 +155,14 @@
             const config = categoryConfig[currentCategory];
             if (!config) return;
 
-            for (let depth = 1; depth < navigationPath.length + 1; depth++) {
+            let columnsToRender = [];
+            for (let depth = 1; depth <= navigationPath.length; depth++) {
                 const columnEl = document.createElement('div');
                 columnEl.className = 'content-column';
-                mainContentEl.appendChild(columnEl);
                 populateColumn(columnEl, currentCategory, depth);
+                columnsToRender.push(columnEl);
             }
+            mainContentEl.append(...columnsToRender);
 
             if(isMobile) {
                 const lastColumn = mainContentEl.querySelector('.content-column:last-child');
@@ -171,7 +175,8 @@
                 const backButton = document.createElement('button');
                 backButton.className = 'btn-back';
                 backButton.textContent = '‹ 뒤로가기';
-                backButton.onclick = goBack;
+                // ★★★ 핵심 수정: onclick 대신 addEventListener 사용
+                backButton.addEventListener('click', goBack);
                 columnEl.appendChild(backButton);
             }
             const config = categoryConfig[category];
@@ -190,7 +195,7 @@
                     const itemEl = document.createElement('div');
                     itemEl.className = 'list-item';
                     itemEl.textContent = itemKey;
-                    itemEl.onclick = () => handleItemClick(itemKey);
+                    itemEl.addEventListener('click', () => handleItemClick(itemKey));
                     columnEl.appendChild(itemEl);
                 });
             } else if (renderType === 'detail') {
