@@ -27,11 +27,10 @@ function deckDetailRenderer(data) { return `<h2>${data.name} 덱 구성</h2><ul>
 function simpleDetailRenderer(data) { return `<pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit;">${data}</pre>`; }
 function runeChipDetailRenderer(data, name) {
     if (!data) return '<p>정보가 없습니다.</p>';
-    const imageUrlHTML = data.imageUrl ? `<img src="${data.imageUrl}" alt="${name}" style="max-width: 120px; float: left; margin: 0 20px 10px 0; border-radius: 8px;">` : '';
-    const descriptionHTML = data.description ? `<pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: 1.1em; line-height: 1.7;">${data.description}</pre>` : '';
+    const imageUrlHTML = data.imageUrl ? `<img src="${data.imageUrl}" alt="${name}">` : '';
+    const descriptionHTML = data.description ? `<pre>${data.description}</pre>` : '';
     return `<div class="detail-view-container"><h2>${name}</h2>${imageUrlHTML}${descriptionHTML}</div>`;
 }
-
 
 // --- 실제 데이터베이스 ---
 const database = {
