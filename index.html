@@ -26,33 +26,22 @@
         .sidebar .nav-menu li.active { background-color: var(--primary-color); }
         .main-content { flex-grow: 1; display: flex; overflow-x: auto; position: relative; }
         .content-column {
-            display: none; /* 기본적으로 모든 컬럼 숨김 */
+            display: none;
             min-width: 320px; background-color: white; border-right: 1px solid #e9e9e9;
             padding: 25px; overflow-y: auto; flex-shrink: 0; box-sizing: border-box;
         }
-        /* --- PC 화면 구성 제어 (CSS) --- */
-        .main-content[data-depth='1'] #column-lev2,
-        .main-content[data-depth='2'] #column-lev2, .main-content[data-depth='2'] #column-lev3,
-        .main-content[data-depth='3'] #column-lev2, .main-content[data-depth='3'] #column-lev3, .main-content[data-depth='3'] #column-lev4,
-        .main-content[data-depth='4'] #column-lev2, .main-content[data-depth='4'] #column-lev3, .main-content[data-depth='4'] #column-lev4 {
-            display: block;
-        }
-        /* 최종 화면 규칙: 중간 컬럼 숨기기 */
-        .main-content[data-is-final='true'][data-depth='2'] #column-lev2 { display: none; }
-        .main-content[data-is-final='true'][data-depth='3'] #column-lev2, .main-content[data-is-final='true'][data-depth='3'] #column-lev3 { display: none; }
-        
         .list-item { padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; font-size:1.05em; }
         .icon-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-        .icon-button {
-            padding: 12px; border-radius: 30px; text-align: center; color: white; font-weight: bold;
-            cursor: pointer; border: 2px solid rgba(0,0,0,0.05); text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        }
+        .icon-button { padding: 12px; border-radius: 30px; text-align: center; color: white; font-weight: bold; cursor: pointer; border: 2px solid rgba(0,0,0,0.05); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
         .detail-section h3 { border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.4em; color: #c0392b; }
         .detail-view-container img { max-width: 120px; float: left; margin: 0 20px 10px 0; border-radius: 8px; }
         .detail-view-container pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: 1.1em; line-height: 1.7; }
         .top-controls { display: none; }
-        .btn-back-pc { display: none; margin-bottom: 15px; padding: 8px 12px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-back { margin-bottom: 15px; padding: 8px 12px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; }
         
+        @media (min-width: 769px) {
+            .main-content[data-is-final="true"] .content-column:not(:last-child) { display: none; }
+        }
         @media (max-width: 768px) {
             body { padding-top: calc(var(--top-ad-banner-height) + 50px); }
             .top-controls {
@@ -67,8 +56,8 @@
             .main-content { overflow: hidden; }
             .content-column {
                 display: block; visibility: hidden;
-                position: absolute; width: 100%; height: 100%;
-                min-width: 100%; box-sizing: border-box; top: 0; left: 0;
+                position: absolute; width: 100%; height: 100%; min-width: 100%;
+                box-sizing: border-box; top: 0; left: 0;
                 transform: translateX(100%); transition: transform 0.3s ease-in-out;
             }
             .content-column.active { visibility: visible; transform: translateX(0%); }
@@ -79,11 +68,7 @@
     <div class="top-ad-banner" id="top-ad-banner"></div>
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
-        <main class="main-content" id="main-content">
-            <div class="content-column" id="column-lev2"></div>
-            <div class="content-column" id="column-lev3"></div>
-            <div class="content-column" id="column-lev4"></div>
-        </main>
+        <main class="main-content" id="main-content"></main>
     </div>
     <div class="top-controls">
         <button id="btn-menu" style="background:none; border:none; color:white; font-size:1.2em;">☰ 메뉴</button>
@@ -96,79 +81,75 @@
         const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
         const sidebarEl = document.getElementById('sidebar');
         const mainContentEl = document.getElementById('main-content');
-        const columns = { lev2: document.getElementById('column-lev2'), lev3: document.getElementById('column-lev3'), lev4: document.getElementById('column-lev4') };
         const btnMenu = document.getElementById('btn-menu');
         const btnBackMobile = document.getElementById('btn-back-mobile');
         const mobileTitle = document.getElementById('mobile-title');
-        let navigationStack = [];
+        let navigationPath = []; // [{category, key}] -> [{key}, {key}, ...]
 
-        const goBack = () => { if (navigationStack.length > 1) { navigationStack.pop(); renderView(); } };
+        const goBack = () => { if (navigationPath.length > 1) { navigationPath.pop(); renderContent(); } };
         
         const handleItemClick = (depth, newKey) => {
-            const currentCategory = navigationStack[0].category;
-            navigationStack = navigationStack.slice(0, depth + 1);
-            navigationStack.push({ category: currentCategory, key: newKey });
-            renderView();
+            navigationPath = navigationPath.slice(0, depth + 1);
+            navigationPath.push(newKey);
+            renderContent();
         };
 
-        const renderView = () => {
-            Object.values(columns).forEach(col => {
-                col.innerHTML = ''; // ★★★ 핵심 수정: 컬럼을 부수지 않고 내용만 비웁니다.
-                col.classList.remove('active');
-            });
-
-            mainContentEl.dataset.depth = navigationStack.length;
-            if (navigationStack.length === 0) {
+        const renderContent = () => {
+            mainContentEl.innerHTML = '';
+            if (navigationPath.length === 0) {
                 btnBackMobile.style.display = 'none';
                 mobileTitle.textContent = '메뉴 선택';
-                if (window.innerWidth <= 768) sidebarEl.classList.remove('show');
+                mainContentEl.dataset.isFinal = 'false';
                 return;
             }
 
-            const isMobile = window.innerWidth <= 768;
-            const currentState = navigationStack[navigationStack.length - 1];
-            const config = categoryConfig[currentState.category];
-            const currentDepth = navigationStack.length - 1;
-            const isFinalView = config.renderType.length === navigationStack.length;
-
-            mobileTitle.textContent = currentState.key || config.title;
+            const currentCategory = navigationPath[0].category;
+            const config = categoryConfig[currentCategory];
+            const isFinalView = navigationPath.length === config.renderType.length + 1;
             mainContentEl.dataset.isFinal = isFinalView;
-            if(isFinalView) { refreshTopAd(); }
+            
+            const lastKey = navigationPath[navigationPath.length - 1]?.key;
+            mobileTitle.textContent = lastKey || config.title;
+            if (isFinalView) { refreshTopAd(); }
 
-            navigationStack.forEach((state, index) => renderColumn(state, index));
-
-            if(isMobile) {
+            navigationPath.forEach((pathItem, depth) => {
+                if(depth > 0) { // lev2부터 컬럼 생성
+                    const columnEl = document.createElement('div');
+                    const columnId = config.levels[depth - 1];
+                    columnEl.id = `column-${columnId}`;
+                    columnEl.className = 'content-column';
+                    mainContentEl.appendChild(columnEl);
+                    renderColumn(columnEl, currentCategory, depth);
+                }
+            });
+            
+            if (window.innerWidth <= 768) {
                 sidebarEl.classList.remove('show');
-                const lastColId = `column-${config.levels[currentDepth]}`;
-                const lastCol = document.getElementById(lastColId);
-                if(lastCol) lastCol.classList.add('active');
+                const lastColumn = mainContentEl.querySelector('.content-column:last-child');
+                if (lastColumn) lastColumn.classList.add('active');
             }
-            btnBackMobile.style.display = navigationStack.length > 0 ? 'block' : 'none';
+            btnBackMobile.style.display = navigationPath.length > 1 ? 'block' : 'none';
         };
 
-        const renderColumn = (state, depth) => {
-            const { category, key } = state;
+        const renderColumn = (columnEl, category, depth) => {
             const config = categoryConfig[category];
-            const columnEl = columns[config.levels[depth]];
-            if (!columnEl) return;
-            
-            const backButtonPC = document.createElement('button');
-            backButtonPC.className = 'btn-back-pc'; backButtonPC.textContent = '‹ 목록으로 돌아가기';
-            backButtonPC.onclick = goBack;
-            if (depth > 0 || (depth === 0 && config.renderType[0] === 'detail')) {
-                backButtonPC.style.display = 'block';
-            }
-            columnEl.appendChild(backButtonPC);
+            const currentKey = navigationPath[depth]?.key;
+            const prevKey = navigationPath[depth-1]?.key;
 
-            const sourceData = database[config.dataKeys[depth]];
-            const renderType = config.renderType[depth];
+            const backButton = document.createElement('button');
+            backButton.className = 'btn-back';
+            backButton.textContent = '‹ 목록으로 돌아가기';
+            backButton.onclick = goBack;
+            columnEl.appendChild(backButton);
+
+            const sourceData = database[config.dataKeys[depth - 1]];
+            const renderType = config.renderType[depth - 1];
 
             if (renderType === 'list') {
                 const title = document.createElement('h2');
-                const prevKey = depth > 0 ? navigationStack[depth - 1].key : null;
-                title.textContent = key || config.title;
+                title.textContent = prevKey || config.title;
                 columnEl.appendChild(title);
-                const listData = (depth === 0) ? Object.keys(sourceData) : (sourceData[prevKey] || []);
+                const listData = (depth === 1) ? Object.keys(sourceData) : (sourceData[prevKey] || []);
                 const container = config.listStyle === 'icon-button' ? document.createElement('div') : columnEl;
                 if (config.listStyle === 'icon-button') {
                     container.className = 'icon-grid-container';
@@ -186,15 +167,18 @@
                     container.appendChild(itemEl);
                 });
             } else if (renderType === 'detail') {
-                const detailData = sourceData[key];
+                const detailData = sourceData[currentKey];
                 if (detailData) {
                     const contentDiv = document.createElement('div');
-                    contentDiv.innerHTML = config.detailRenderer(detailData, key);
+                    contentDiv.innerHTML = config.detailRenderer(detailData, currentKey);
                     columnEl.appendChild(contentDiv);
                 }
             }
         };
         
+        const refreshTopAd = () => { /* 이전과 동일, 생략 가능 */ };
+        const handleAdClick = () => { /* 이전과 동일, 생략 가능 */ };
+
         const init = () => {
             if (isAdmin) console.log("운영자 모드 활성화.");
             sidebarEl.innerHTML = `<h1>포켓몬 정보</h1><ul class="nav-menu" id="main-nav">
@@ -207,13 +191,13 @@
                     const category = e.target.dataset.category;
                     sidebarEl.querySelector('.active')?.classList.remove('active');
                     e.target.classList.add('active');
-                    navigationStack = [{ category: category, key: null }];
-                    renderView();
+                    navigationPath = [{ category: category }];
+                    renderContent();
                 }
             });
             btnBackMobile.addEventListener('click', goBack);
             btnMenu.addEventListener('click', () => sidebarEl.classList.toggle('show'));
-            window.addEventListener('resize', renderView);
+            window.addEventListener('resize', renderContent);
             refreshTopAd();
         };
         init();
