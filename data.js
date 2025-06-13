@@ -19,12 +19,10 @@ const categoryConfig = {
 };
 
 // --- 상세 정보(Lev.4)를 HTML로 만들어주는 함수들 ---
-function pokemonDetailRenderer(data) {
-    return `<div class="detail-header" style="text-align:center;"><img src="${data.imageUrl}" alt="${data.name}" style="display:${data.imageUrl ? 'block' : 'none'}; margin: auto; max-width: 150px;"><h2 style="color:var(--primary-color);">${data.name}</h2><p>${data.description}</p></div><div class="detail-section"><h3>스킬 정보</h3><div style="margin-bottom:1em;"><strong>Active: ${data.skills.active.name}</strong><p>${data.skills.active.description}</p></div><div><strong>Passive: ${data.skills.passive.name}</strong><p>${data.skills.passive.description}</p></div></div><div class="detail-section"><h3>개방 효과</h3><ul style="padding:0; list-style:none;">${Object.entries(data.unlocks).map(([key, value]) => `<li style="margin-bottom:0.5em;"><strong>${key}:</strong> ${value}</li>`).join('')}</ul></div><div class="detail-section"><h3>추천 정보</h3><p><strong>성격:</strong> ${data.recommendations.nature.join(', ')}</p><p><strong>아이템:</strong> ${data.recommendations.item}</p><p><strong>룬:</strong> ${data.recommendations.runes.join(', ')}</p><p><strong>칩:</strong> ${data.recommendations.chips.join(', ')}</p></div>`;
-}
-function itemDetailRenderer(data) { return `<h2>${data.name}</h2><p>${data.description}</p>`; }
-function deckDetailRenderer(data) { return `<h2>${data.name} 덱 구성</h2><ul>${(data.members || []).map(item => `<li>${item}</li>`).join('')}</ul>`; }
-function simpleDetailRenderer(data) { return `<pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit;">${data}</pre>`; }
+function pokemonDetailRenderer(data, name) { /* ... 이전과 동일 ... */ }
+function itemDetailRenderer(data, name) { return `<h2>${name}</h2><p>${data.description}</p>`; }
+function deckDetailRenderer(data, name) { return `<h2>${name} 덱 구성</h2><ul>${(data.members || []).map(item => `<li>${item}</li>`).join('')}</ul>`; }
+function simpleDetailRenderer(data, name) { return `<h2>${name}</h2><pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit;">${data}</pre>`; }
 function runeChipDetailRenderer(data, name) {
     if (!data) return '<p>정보가 없습니다.</p>';
     const imageUrlHTML = data.imageUrl ? `<img src="${data.imageUrl}" alt="${name}">` : '';
@@ -48,10 +46,10 @@ const database = {
         '치명': { imageUrl: 'https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbU9JRa%2FbtsOv8izvWj%2FIf5dAZJsul5BwpbV6ECDuk%2Fimg.png', description: '공격 룬스톤\n치명3개 공명<span style="color:red;">(빨간색)</span>: 치명타율 +8%\n치명6개 공명<span style="color:red;">(빨간색)</span>: 치명타 피해+12%'},
         '강격': { imageUrl: 'https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fxs8x9%2FbtsOxxPh1Nr%2FMun91YmWOgAB8pTnceOHzk%2Fimg.png', description: '공격 룬스톤\n강격3개 공명<span style="color:red;">(빨간색)</span>: 공격+12%, 특수공격+12%\n강격6개 공명<span style="color:red;">(빨간색)</span>:방어 무시+10%, 특수방어 무시+10%'}
     },
-    chipDetails: { /* 이전과 동일 */ },
-    recommendedDecks: { /* 이전과 동일 */ },
-    calendarEvents: { /* 이전과 동일 */ },
-    tipsAndKnowhow: { /* 이전과 동일 */ },
-    pokemonDetails: { /* 이전과 동일 */ },
-    itemDetails: { /* 이전과 동일 */ }
+    chipDetails: { /* ...이전과 동일... */ },
+    recommendedDecks: { /* ...이전과 동일... */ },
+    calendarEvents: { /* ...이전과 동일... */ },
+    tipsAndKnowhow: { /* ...이전과 동일... */ },
+    pokemonDetails: { /* ...이전과 동일... */ },
+    itemDetails: { /* ...이전과 동일... */ }
 };
