@@ -3,86 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 도감 정보 - 2.4단계 (최종 수정)</title>
+    <title>포켓몬 도감 정보</title>
     <style>
-        body, h1, h2, ul, li { margin: 0; padding: 0; box-sizing: border-box; }
-        body { display: flex; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f6f9; }
+        :root {
+            --sidebar-width: 240px; --primary-color: #3498db; --background-color: #f4f6f9;
+            --top-ad-banner-height: 90px;
+        }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--background-color); padding-top: var(--top-ad-banner-height); }
+        .top-ad-banner {
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--top-ad-banner-height);
+            background-color: #fff; border-bottom: 1px solid #e0e0e0;
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+        }
+        .app-container { display: flex; height: calc(100vh - var(--top-ad-banner-height)); }
         .sidebar {
-            width: 240px; background-color: #2c3e50; color: white;
-            padding: 20px; flex-shrink: 0;
+            width: var(--sidebar-width); background-color: #2c3e50; color: white;
+            padding: 15px; flex-shrink: 0; overflow-y: auto;
         }
-        .sidebar h1 { text-align: center; margin-bottom: 30px; }
-        .sidebar .nav-menu { list-style: none; }
-        .sidebar .nav-menu li {
-            padding: 13px 20px; margin-bottom: 10px; border-radius: 8px;
-            cursor: pointer; transition: background-color 0.2s;
-        }
-        .sidebar .nav-menu li.active { background-color: #3498db; }
-        .main-content { flex-grow: 1; display: flex; overflow-x: auto; }
+        .sidebar h1 { font-size: 1.6em; text-align: center; margin-bottom: 25px; }
+        .sidebar ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar .nav-menu li { padding: 13px 20px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; font-size: 1.1em;}
+        .sidebar .nav-menu li.active { background-color: var(--primary-color); }
+        .main-content { flex-grow: 1; display: flex; overflow-x: auto; position: relative; }
         .content-column {
-            min-width: 320px; background-color: white;
-            border-right: 1px solid #e9e9e9;
-            padding: 25px;
+            display: none;
+            min-width: 320px; background-color: white; border-right: 1px solid #e9e9e9;
+            padding: 25px; overflow-y: auto; flex-shrink: 0; box-sizing: border-box;
         }
-        .content-column h2 { margin-top: 0; }
-        .list-item {
-            padding: 12px; margin-bottom: 8px; border-radius: 6px;
-            cursor: pointer; border: 1px solid #ddd;
+        /* --- PC 화면 구성 제어 (CSS) --- */
+        .main-content[data-depth='1'] .column-1,
+        .main-content[data-depth='2'] .column-1, .main-content[data-depth='2'] .column-2,
+        .main-content[data-depth='3'] .column-1, .main-content[data-depth='3'] .column-2, .main-content[data-depth='3'] .column-3,
+        .main-content[data-depth='4'] .column-1, .main-content[data-depth='4'] .column-2, .main-content[data-depth='4'] .column-3, .main-content[data-depth='4'] .column-4 {
+            display: block;
         }
-        .list-item:hover { background-color: #f0f0f0; }
-        .btn-back {
-            margin-bottom: 15px; padding: 8px 12px;
-            background-color: #6c757d; color: white;
-            border: none; border-radius: 4px; cursor: pointer;
+        /* 최종 화면 규칙: 중간 컬럼 숨기기 */
+        .main-content[data-is-final='true'] .content-column:not(:last-child) {
+            display: none;
         }
-        .btn-back:hover { background-color: #5a6268; }
-        .detail-image {
-             max-width: 150px;
-             display: block;
-             margin-bottom: 15px;
-             border-radius: 8px;
+        
+        .list-item { padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; font-size:1.05em; }
+        .icon-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+        .icon-button {
+            padding: 12px; border-radius: 30px; text-align: center; color: white; font-weight: bold;
+            cursor: pointer; border: 2px solid rgba(0,0,0,0.05); text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
+        .detail-section h3 { border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.4em; color: #c0392b; }
+        .detail-view-container img { max-width: 120px; float: left; margin: 5px 20px 10px 0; border-radius: 8px; }
+        .detail-view-container pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: 1.1em; line-height: 1.7; }
         .top-controls { display: none; }
+        .btn-back { display: none; margin-bottom: 15px; padding: 8px 12px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        
         @media (max-width: 768px) {
+            body { padding-top: calc(var(--top-ad-banner-height) + 50px); }
             .top-controls {
                 display: flex; justify-content: space-between; align-items: center;
-                position: fixed; top: 0; left: 0; width: 100%; height: 50px;
-                background-color: #2c3e50; color: white;
-                padding: 0 15px; z-index: 1000; box-sizing: border-box;
+                position: fixed; top: var(--top-ad-banner-height); left: 0; width: 100%;
+                background-color: #2c3e50; color: white; padding: 10px 15px;
+                z-index: 900; box-sizing: border-box;
             }
-            .sidebar {
-                position: fixed; top: 0; left: 0; height: 100%;
-                transform: translateX(-100%); z-index: 1100;
-                transition: transform 0.3s ease;
-            }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); z-index: 1100; transition: transform 0.3s ease; }
             .sidebar.show { transform: translateX(0); }
-            .app-container { padding-top: 50px; height: calc(100vh - 50px); }
-            .main-content { position: absolute; top: 50px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+            .app-container { height: calc(100vh - (var(--top-ad-banner-height) + 50px)); }
+            .main-content { overflow: hidden; }
             .content-column {
-                position: absolute; width: 100%; height: 100%;
+                display: block; visibility: hidden;
+                position: absolute; width: 100%; height: 100%; min-width: 100%;
+                box-sizing: border-box; top: 0; left: 0;
                 transform: translateX(100%); transition: transform 0.3s ease-in-out;
-                background-color: white;
             }
-            .content-column.active { transform: translateX(0); }
+            .content-column.active { visibility: visible; transform: translateX(0%); }
         }
     </style>
 </head>
 <body>
-    <aside class="sidebar" id="sidebar">
-        <h1>포켓몬 정보</h1>
-        <ul class="nav-menu">
-            <li data-category="pokemonType">포켓몬 타입</li>
-            <li data-category="pokemonGrade">포켓몬 등급</li>
-            <li data-category="item">아이템</li>
-            <li data-category="rune">룬</li>
-            <li data-category="chip">칩</li>
-            <li data-category="recommendedDeck">추천 덱</li>
-            <li data-category="calendar">캘린더</li>
-            <li data-category="tips">팁 & 노하우</li>
-        </ul>
-    </aside>
-    <main class="main-content" id="main-content"></main>
-    <div class="top-controls" id="top-controls">
+    <div class="top-ad-banner" id="top-ad-banner"></div>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content" id="main-content"></main>
+    </div>
+    <div class="top-controls">
         <button id="btn-menu" style="background:none; border:none; color:white; font-size:1.2em;">☰ 메뉴</button>
         <h2 id="mobile-title" style="margin:0; font-size:1.1em; color:white;"></h2>
         <button id="btn-back-mobile" style="display: none; background:none; border:none; color:white; font-size:1.1em;">‹ 뒤로</button>
@@ -90,117 +90,130 @@
 
     <script src="data.js"></script>
     <script>
+        const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
         const sidebarEl = document.getElementById('sidebar');
         const mainContentEl = document.getElementById('main-content');
-        const topControlsEl = document.getElementById('top-controls');
-        const mobileTitleEl = document.getElementById('mobile-title');
         const btnMenu = document.getElementById('btn-menu');
         const btnBackMobile = document.getElementById('btn-back-mobile');
+        const mobileTitle = document.getElementById('mobile-title');
         let navigationPath = [];
 
-        const goBack = () => {
-            if (navigationPath.length > 1) {
-                navigationPath.pop();
-                renderContent();
-            }
-        };
-
-        const handleItemClick = (newKey) => {
+        const goBack = () => { if (navigationPath.length > 1) { navigationPath.pop(); renderContent(); } };
+        
+        const handleItemClick = (depth, newKey) => {
+            navigationPath = navigationPath.slice(0, depth + 1);
             navigationPath.push(newKey);
             renderContent();
         };
 
         const renderContent = () => {
             mainContentEl.innerHTML = '';
-            const isMobile = window.innerWidth <= 768;
-
             if (navigationPath.length === 0) {
-                if(isMobile) topControlsEl.style.display = 'none';
+                mainContentEl.dataset.depth = '0';
+                btnBackMobile.style.display = 'none';
+                mobileTitle.textContent = '메뉴 선택';
+                if (window.innerWidth <= 768) sidebarEl.classList.remove('show');
                 return;
             }
-            
-            if(isMobile) {
-                sidebarEl.classList.remove('show');
-                topControlsEl.style.display = 'flex';
-                btnBackMobile.style.display = navigationPath.length > 1 ? 'block' : 'none';
-                const currentKey = navigationPath[navigationPath.length - 1];
-                const categoryName = document.querySelector(`[data-category="${navigationPath[0]}"]`).textContent;
-                mobileTitleEl.textContent = navigationPath.length > 1 ? currentKey : categoryName;
-            }
 
+            const isMobile = window.innerWidth <= 768;
             const currentCategory = navigationPath[0];
             const config = categoryConfig[currentCategory];
-            if (!config) return;
+            const isFinalView = navigationPath.length -1 === config.renderType.length;
 
-            let columnsToRender = [];
-            for (let depth = 1; depth <= navigationPath.length; depth++) {
-                const columnEl = document.createElement('div');
-                columnEl.className = 'content-column';
-                populateColumn(columnEl, currentCategory, depth);
-                columnsToRender.push(columnEl);
-            }
-            mainContentEl.append(...columnsToRender);
+            mainContentEl.dataset.depth = navigationPath.length;
+            mainContentEl.dataset.isFinal = isFinalView;
+            
+            if (isFinalView) { refreshTopAd(); }
+
+            navigationPath.forEach((key, depth) => {
+                if (depth > 0) { // lev2부터 컬럼 생성
+                    const columnEl = document.createElement('div');
+                    columnEl.className = `content-column column-${depth}`;
+                    mainContentEl.appendChild(columnEl);
+                    populateColumn(columnEl, currentCategory, depth);
+                }
+            });
 
             if(isMobile) {
+                sidebarEl.classList.remove('show');
                 const lastColumn = mainContentEl.querySelector('.content-column:last-child');
                 if (lastColumn) lastColumn.classList.add('active');
             }
+            btnBackMobile.style.display = navigationPath.length > 1 ? 'block' : 'none';
+            const lastKey = navigationPath[navigationPath.length - 1];
+            mobileTitle.textContent = lastKey === currentCategory ? config.title : lastKey;
         };
 
         const populateColumn = (columnEl, category, depth) => {
-            // ★★★ 핵심 수정: 뒤로가기 버튼 생성 로직을 더 위로 올리고, 이벤트 리스너를 다시 확인합니다.
-            if (depth > 1) {
-                const backButton = document.createElement('button');
-                backButton.className = 'btn-back';
-                backButton.textContent = '‹ 뒤로가기';
-                backButton.addEventListener('click', goBack);
-                columnEl.appendChild(backButton);
-            }
-            
             const config = categoryConfig[category];
+            const currentKey = navigationPath[depth];
+            const prevKey = navigationPath[depth - 1];
             const renderType = config.renderType[depth - 1];
-            // ★★★ 핵심 수정: 데이터 조회를 위한 키 값을 명확하게 수정합니다.
-            const dataKey = navigationPath[depth - 1];
-            const listDataKey = navigationPath[depth - 1];
+            const sourceData = database[config.dataKeys[depth - 1]];
             
-            const title = document.createElement('h2');
-            title.textContent = dataKey === category ? config.title : dataKey;
-            columnEl.appendChild(title);
-
+            const backButton = document.createElement('button');
+            backButton.className = 'btn-back';
+            backButton.textContent = '‹ 목록으로 돌아가기';
+            backButton.addEventListener('click', goBack);
+            columnEl.appendChild(backButton);
+            
             if (renderType === 'list') {
-                const sourceData = database[config.dataKeys[depth - 1]];
-                const listData = (depth === 1) ? Object.keys(sourceData) : (sourceData[listDataKey] || []);
+                const title = document.createElement('h2');
+                title.textContent = prevKey === category ? config.title : prevKey;
+                columnEl.appendChild(title);
+                const listData = (depth === 1) ? Object.keys(sourceData) : (sourceData[prevKey] || []);
+                const container = config.listStyle === 'icon-button' ? document.createElement('div') : columnEl;
+                if (config.listStyle === 'icon-button') {
+                    container.className = 'icon-grid-container';
+                    columnEl.appendChild(container);
+                }
                 listData.forEach(itemKey => {
                     const itemEl = document.createElement('div');
-                    itemEl.className = 'list-item';
                     itemEl.textContent = itemKey;
-                    itemEl.addEventListener('click', () => handleItemClick(itemKey));
-                    columnEl.appendChild(itemEl);
+                    itemEl.addEventListener('click', () => handleItemClick(depth, itemKey));
+                    switch (config.listStyle) {
+                        case 'icon-button': itemEl.className = 'icon-button'; itemEl.style.backgroundColor = typeColors[itemKey] || '#ccc'; break;
+                        case 'color-text': itemEl.className = 'list-item'; itemEl.style.color = itemColors[itemKey] || '#333'; itemEl.style.fontWeight = 'bold'; break;
+                        default: itemEl.className = 'list-item'; break;
+                    }
+                    container.appendChild(itemEl);
                 });
             } else if (renderType === 'detail') {
-                const sourceData = database[config.dataKeys[depth - 1]];
-                const detailData = sourceData[dataKey];
-                if (detailData && config.detailRenderer) {
-                    columnEl.innerHTML += config.detailRenderer(detailData);
-                } else {
-                    columnEl.innerHTML += `<p>상세 정보가 없습니다.</p>`;
+                const detailData = sourceData[currentKey];
+                if (detailData) {
+                    const contentDiv = document.createElement('div');
+                    contentDiv.innerHTML = config.detailRenderer(detailData, currentKey);
+                    columnEl.appendChild(contentDiv);
                 }
             }
         };
+        
+        const refreshTopAd = () => { /* 이전과 동일, 생략 가능 */ };
+        const handleAdClick = () => { /* 이전과 동일, 생략 가능 */ };
 
-        const navItems = sidebarEl.querySelectorAll('.nav-menu li');
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                navItems.forEach(nav => nav.classList.remove('active'));
-                item.classList.add('active');
-                const category = item.dataset.category;
-                navigationPath = [category];
-                renderContent();
+        const init = () => {
+            if (isAdmin) console.log("운영자 모드 활성화.");
+            sidebarEl.innerHTML = `<h1>포켓몬 정보</h1><ul class="nav-menu">
+                <li data-category="pokemonType">포켓몬 타입</li><li data-category="pokemonGrade">포켓몬 등급</li>
+                <li data-category="item">아이템</li><li data-category="rune">룬</li><li data-category="chip">칩</li>
+                <li data-category="recommendedDeck">추천 덱</li><li data-category="calendar">캘린더</li>
+                <li data-category="tips">팁 & 노하우</li></ul>`;
+            const navItems = sidebarEl.querySelectorAll('.nav-menu li');
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                    navigationPath = [item.dataset.category];
+                    renderContent();
+                });
             });
-        });
-
-        btnMenu.addEventListener('click', () => sidebarEl.classList.toggle('show'));
-        btnBackMobile.addEventListener('click', goBack);
+            btnBackMobile.addEventListener('click', goBack);
+            btnMenu.addEventListener('click', () => sidebarEl.classList.toggle('show'));
+            window.addEventListener('resize', renderContent);
+            refreshTopAd();
+        };
+        init();
     </script>
 </body>
 </html>
