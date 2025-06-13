@@ -26,9 +26,8 @@
         .sidebar .nav-menu li.active { background-color: var(--primary-color); }
         .main-content { flex-grow: 1; display: flex; overflow-x: auto; position: relative; }
         .content-column {
-            background-color: white; border-right: 1px solid #e9e9e9;
-            padding: 25px; overflow-y: auto; flex-shrink: 0;
-            width: 320px; box-sizing: border-box;
+            min-width: 320px; background-color: white; border-right: 1px solid #e9e9e9;
+            padding: 25px; overflow-y: auto;
         }
         .column-hidden { display: none; }
         .list-item { padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; font-size:1.05em; }
@@ -40,6 +39,9 @@
         }
         .icon-button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .detail-section h3 { border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.4em; color: #c0392b; }
+        .detail-view-container { overflow: hidden; } /* clearfix for floated image */
+        .detail-view-container img { max-width: 120px; float: left; margin-right: 20px; border-radius: 8px; }
+        .detail-view-container pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: 1.1em; line-height: 1.7; }
         .top-controls { display: none; }
         .btn-back-pc { display: none; margin-bottom: 15px; padding: 8px 12px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; }
         .btn-back-pc:hover { background-color: #5a6268; }
@@ -84,15 +86,16 @@
 
     <script src="data.js"></script>
     <script>
+        // 전역 변수 및 초기 설정
         const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
         const sidebarEl = document.getElementById('sidebar');
-        const mainContentEl = document.getElementById('main-content');
         const columns = { lev2: document.getElementById('column-lev2'), lev3: document.getElementById('column-lev3'), lev4: document.getElementById('column-lev4') };
         const btnMenu = document.getElementById('btn-menu');
         const btnBackMobile = document.getElementById('btn-back-mobile');
         const mobileTitle = document.getElementById('mobile-title');
         let navigationStack = [];
 
+        // 네비게이션 함수
         const goBack = () => { if (navigationStack.length > 0) { navigationStack.pop(); renderView(); } };
         const handleItemClick = (depth, newKey) => {
             const currentCategory = navigationStack[0].category;
@@ -101,8 +104,9 @@
             renderView();
         };
 
+        // 렌더링 엔진
         const renderView = () => {
-            Object.values(columns).forEach(col => col.classList.add('column-hidden'));
+            Object.values(columns).forEach(col => { col.classList.add('column-hidden'); col.classList.remove('active'); });
             if (navigationStack.length === 0) {
                 btnBackMobile.style.display = 'none';
                 mobileTitle.textContent = '메뉴 선택';
@@ -115,10 +119,10 @@
             const currentDepth = navigationStack.length - 1;
             const isDetailView = config.renderType[currentDepth] === 'detail';
             mobileTitle.textContent = currentState.key || config.title;
-            if (isDetailView) { refreshTopAd(); }
+            if(isDetailView) { refreshTopAd(); }
+
             if (isMobile) {
                 sidebarEl.classList.remove('show');
-                Object.values(columns).forEach(col => col.classList.remove('active'));
                 const colToRender = renderColumn(currentState, currentDepth);
                 if (colToRender) {
                     colToRender.classList.remove('column-hidden');
@@ -138,13 +142,14 @@
             }
             btnBackMobile.style.display = navigationStack.length > 0 ? 'block' : 'none';
         };
-
+        
         const renderColumn = (state, depth) => {
             const { category, key } = state;
             const config = categoryConfig[category];
             const columnEl = columns[config.levels[depth]];
             if (!columnEl) return null;
             columnEl.innerHTML = '';
+            
             const backButtonPC = document.createElement('button');
             backButtonPC.className = 'btn-back-pc'; backButtonPC.textContent = '‹ 목록으로 돌아가기';
             backButtonPC.onclick = goBack;
@@ -152,8 +157,10 @@
             if (depth > 0 || (depth === 0 && config.renderType[0] === 'detail')) {
                 backButtonPC.style.display = 'block';
             }
+
             const sourceData = database[config.dataKeys[depth]];
             const renderType = config.renderType[depth];
+
             if (renderType === 'list') {
                 const title = document.createElement('h2');
                 const prevKey = depth > 0 ? navigationStack[depth - 1].key : null;
@@ -180,7 +187,7 @@
                 const detailData = sourceData[key];
                 if (detailData) {
                     const contentDiv = document.createElement('div');
-                    contentDiv.innerHTML = config.detailRenderer(detailData);
+                    contentDiv.innerHTML = config.detailRenderer(detailData, key);
                     columnEl.appendChild(contentDiv);
                 } else {
                      columnEl.innerHTML += `<p>상세 정보가 없습니다.</p>`;
@@ -189,8 +196,8 @@
             return columnEl;
         };
         
-        const refreshTopAd = () => { /* 이전과 동일, 생략 가능 */ };
-        const handleAdClick = () => { /* 이전과 동일, 생략 가능 */ };
+        const refreshTopAd = () => { /* 이전과 동일 */ };
+        const handleAdClick = () => { /* 이전과 동일 */ };
 
         const init = () => {
             if (isAdmin) console.log("운영자 모드 활성화.");
