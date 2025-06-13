@@ -38,10 +38,8 @@
             display: block;
         }
         /* 최종 화면 규칙: 중간 컬럼 숨기기 */
-        .main-content[data-is-final='true'][data-depth='2'] #column-lev2,
-        .main-content[data-is-final='true'][data-depth='3'] #column-lev2, .main-content[data-is-final='true'][data-depth='3'] #column-lev3 {
-            display: none;
-        }
+        .main-content[data-is-final='true'][data-depth='2'] #column-lev2 { display: none; }
+        .main-content[data-is-final='true'][data-depth='3'] #column-lev2, .main-content[data-is-final='true'][data-depth='3'] #column-lev3 { display: none; }
         
         .list-item { padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; font-size:1.05em; }
         .icon-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
@@ -54,7 +52,7 @@
         .detail-view-container pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: 1.1em; line-height: 1.7; }
         .top-controls { display: none; }
         .btn-back-pc { display: none; margin-bottom: 15px; padding: 8px 12px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; }
-
+        
         @media (max-width: 768px) {
             body { padding-top: calc(var(--top-ad-banner-height) + 50px); }
             .top-controls {
@@ -81,7 +79,11 @@
     <div class="top-ad-banner" id="top-ad-banner"></div>
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
-        <main class="main-content" id="main-content"></main>
+        <main class="main-content" id="main-content">
+            <div class="content-column" id="column-lev2"></div>
+            <div class="content-column" id="column-lev3"></div>
+            <div class="content-column" id="column-lev4"></div>
+        </main>
     </div>
     <div class="top-controls">
         <button id="btn-menu" style="background:none; border:none; color:white; font-size:1.2em;">☰ 메뉴</button>
@@ -94,20 +96,11 @@
         const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
         const sidebarEl = document.getElementById('sidebar');
         const mainContentEl = document.getElementById('main-content');
+        const columns = { lev2: document.getElementById('column-lev2'), lev3: document.getElementById('column-lev3'), lev4: document.getElementById('column-lev4') };
         const btnMenu = document.getElementById('btn-menu');
         const btnBackMobile = document.getElementById('btn-back-mobile');
         const mobileTitle = document.getElementById('mobile-title');
         let navigationStack = [];
-
-        function createAndRenderColumns() {
-            mainContentEl.innerHTML = '';
-            ['lev2', 'lev3', 'lev4'].forEach(levelId => {
-                const col = document.createElement('div');
-                col.id = `column-${levelId}`;
-                col.className = 'content-column';
-                mainContentEl.appendChild(col);
-            });
-        }
 
         const goBack = () => { if (navigationStack.length > 1) { navigationStack.pop(); renderView(); } };
         
@@ -119,9 +112,13 @@
         };
 
         const renderView = () => {
-            createAndRenderColumns();
+            Object.values(columns).forEach(col => {
+                col.innerHTML = ''; // ★★★ 핵심 수정: 컬럼을 부수지 않고 내용만 비웁니다.
+                col.classList.remove('active');
+            });
+
+            mainContentEl.dataset.depth = navigationStack.length;
             if (navigationStack.length === 0) {
-                mainContentEl.dataset.depth = '0';
                 btnBackMobile.style.display = 'none';
                 mobileTitle.textContent = '메뉴 선택';
                 if (window.innerWidth <= 768) sidebarEl.classList.remove('show');
@@ -135,14 +132,13 @@
             const isFinalView = config.renderType.length === navigationStack.length;
 
             mobileTitle.textContent = currentState.key || config.title;
+            mainContentEl.dataset.isFinal = isFinalView;
             if(isFinalView) { refreshTopAd(); }
 
-            mainContentEl.dataset.depth = navigationStack.length;
-            mainContentEl.dataset.isFinal = isFinalView;
-            
             navigationStack.forEach((state, index) => renderColumn(state, index));
 
             if(isMobile) {
+                sidebarEl.classList.remove('show');
                 const lastColId = `column-${config.levels[currentDepth]}`;
                 const lastCol = document.getElementById(lastColId);
                 if(lastCol) lastCol.classList.add('active');
@@ -153,7 +149,7 @@
         const renderColumn = (state, depth) => {
             const { category, key } = state;
             const config = categoryConfig[category];
-            const columnEl = document.getElementById(`column-${config.levels[depth]}`);
+            const columnEl = columns[config.levels[depth]];
             if (!columnEl) return;
             
             const backButtonPC = document.createElement('button');
@@ -199,9 +195,6 @@
             }
         };
         
-        const refreshTopAd = () => { /* 이전과 동일, 생략 가능 */ };
-        const handleAdClick = () => { /* 이전과 동일, 생략 가능 */ };
-
         const init = () => {
             if (isAdmin) console.log("운영자 모드 활성화.");
             sidebarEl.innerHTML = `<h1>포켓몬 정보</h1><ul class="nav-menu" id="main-nav">
