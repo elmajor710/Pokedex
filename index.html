@@ -6,38 +6,39 @@
     <title>포켓몬 도감 정보</title>
     <style>
         :root {
-            --sidebar-width: 220px; --primary-color: #3498db; --background-color: #f0f2f5;
+            --sidebar-width: 240px; --primary-color: #3498db; --background-color: #f4f6f9;
             --top-ad-banner-height: 90px;
         }
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--background-color); padding-top: var(--top-ad-banner-height); }
         .top-ad-banner {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--top-ad-banner-height);
-            background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            z-index: 300; display: flex; align-items: center; justify-content: center;
+            background-color: #fff; border-bottom: 1px solid #e0e0e0;
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
         }
         .app-container { display: flex; height: calc(100vh - var(--top-ad-banner-height)); }
         .sidebar {
             width: var(--sidebar-width); background-color: #2c3e50; color: white;
             padding: 15px; flex-shrink: 0; overflow-y: auto;
         }
-        .sidebar h1 { font-size: 1.5em; text-align: center; margin-bottom: 20px; }
+        .sidebar h1 { font-size: 1.6em; text-align: center; margin-bottom: 25px; }
         .sidebar ul { list-style: none; padding: 0; margin: 0; }
-        .sidebar .nav-menu li { padding: 12px 15px; margin-bottom: 5px; border-radius: 5px; cursor: pointer; }
-        .sidebar .nav-menu li:hover { background-color: #34495e; }
+        .sidebar .nav-menu li { padding: 13px 20px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; font-size: 1.1em;}
         .sidebar .nav-menu li.active { background-color: var(--primary-color); }
-        .main-content { flex-grow: 1; display: flex; overflow-x: hidden; }
+        .main-content { flex-grow: 1; display: flex; overflow-x: auto; }
         .content-column {
-            min-width: 300px; background-color: white; border-right: 1px solid #e0e0e0;
-            padding: 20px; overflow-y: auto;
+            min-width: 320px; background-color: white; border-right: 1px solid #e9e9e9;
+            padding: 25px; overflow-y: auto;
         }
         .column-hidden { display: none; }
-        .list-item { padding: 12px; margin-bottom: 8px; border-radius: 4px; cursor: pointer; border: 1px solid #eee; }
-        .icon-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        .list-item { padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; font-size:1.05em; }
+        .icon-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
         .icon-button {
-            padding: 10px; border-radius: 25px; text-align: center; color: white; font-weight: bold;
-            cursor: pointer; border: 2px solid rgba(0,0,0,0.1); text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            padding: 12px; border-radius: 30px; text-align: center; color: white; font-weight: bold;
+            cursor: pointer; border: 2px solid rgba(0,0,0,0.05); text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .detail-section h3 { border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; margin-bottom: 12px; color: #c0392b; }
+        .icon-button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .detail-section h3 { border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.4em; color: #c0392b; }
         .top-controls, .btn-back-pc { display: none; }
         @media (max-width: 768px) {
             body { padding-top: calc(var(--top-ad-banner-height) + 50px); }
@@ -45,12 +46,19 @@
                 display: flex; justify-content: space-between; align-items: center;
                 position: fixed; top: var(--top-ad-banner-height); left: 0; width: 100%;
                 background-color: #2c3e50; color: white; padding: 10px 15px;
-                z-index: 250; box-sizing: border-box;
+                z-index: 900; box-sizing: border-box;
             }
-            .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); z-index: 200; transition: transform 0.3s ease; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); z-index: 1100; transition: transform 0.3s ease; }
             .sidebar.show { transform: translateX(0); }
             .app-container { height: calc(100vh - (var(--top-ad-banner-height) + 50px)); }
-            .content-column { width: 100%; min-width: 100%; box-sizing: border-box; }
+            .main-content { position: absolute; width: 100%; height: 100%; transform: translateX(0); transition: transform 0.3s ease-in-out; }
+            .content-column {
+                position: absolute; width: 100%; height: 100%;
+                min-width: 100%; box-sizing: border-box;
+                top: 0; left: 100%;
+                visibility: hidden; transition: transform 0.3s ease-in-out, visibility 0.3s;
+            }
+            .content-column.active { transform: translateX(-100%); visibility: visible; }
         }
     </style>
 </head>
@@ -59,9 +67,9 @@
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content" id="main-content">
-            <div class="content-column column-hidden" id="column-lev2"></div>
-            <div class="content-column column-hidden" id="column-lev3"></div>
-            <div class="content-column column-hidden" id="column-lev4"></div>
+            <div class="content-column" id="column-lev2"></div>
+            <div class="content-column" id="column-lev3"></div>
+            <div class="content-column" id="column-lev4"></div>
         </main>
     </div>
     <div class="top-controls">
@@ -74,60 +82,70 @@
     <script>
         const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
         const sidebarEl = document.getElementById('sidebar');
+        const mainContentEl = document.getElementById('main-content');
         const columns = { lev2: document.getElementById('column-lev2'), lev3: document.getElementById('column-lev3'), lev4: document.getElementById('column-lev4') };
         const btnMenu = document.getElementById('btn-menu');
         const btnBackMobile = document.getElementById('btn-back-mobile');
         const mobileTitle = document.getElementById('mobile-title');
-        const topAdBanner = document.getElementById('top-ad-banner');
         let navigationStack = [];
 
-        function goBack() { if (navigationStack.length > 0) { navigationStack.pop(); renderView(); } }
-        function handleItemClick(nextLevel, category, key) {
+        const goBack = () => { if (navigationStack.length > 0) { navigationStack.pop(); renderView(); } };
+
+        const handleItemClick = (nextLevel, category, key) => {
             navigationStack = navigationStack.filter(state => state.level < nextLevel);
             navigationStack.push({ level: nextLevel, category, key });
             renderView();
-        }
+        };
 
-        function renderView() {
+        const renderView = () => {
             const isMobile = window.innerWidth <= 768;
-            Object.values(columns).forEach(col => col.classList.add('column-hidden'));
+            Object.values(columns).forEach(col => { col.classList.remove('active'); col.classList.add('column-hidden'); });
+
             if (navigationStack.length === 0) {
+                if (isMobile) sidebarEl.classList.remove('show');
                 btnBackMobile.style.display = 'none';
                 mobileTitle.textContent = '메뉴 선택';
-                if (isMobile) sidebarEl.classList.remove('show');
                 return;
             }
+
             const currentState = navigationStack[navigationStack.length - 1];
             const config = categoryConfig[currentState.category];
             mobileTitle.textContent = currentState.key || config.title;
+
             if (config.renderType[currentState.level - 1] === 'detail') { refreshTopAd(); }
+
             if (isMobile) {
                 sidebarEl.classList.remove('show');
                 const colToRender = renderColumn(currentState);
-                if (colToRender) colToRender.classList.remove('column-hidden');
+                if (colToRender) {
+                    colToRender.classList.remove('column-hidden');
+                    colToRender.classList.add('active');
+                }
             } else {
                 const finalLevel = config.levels.length;
-                if (currentState.level === finalLevel) {
-                    const colToRender = renderColumn(currentState);
-                    if (colToRender) colToRender.classList.remove('column-hidden');
+                let activeColumns = [];
+                if (currentState.level === finalLevel && config.finalView) {
+                    activeColumns = navigationStack.filter(s => config.finalView.includes(`lev${s.level + 1}`));
                 } else {
-                    navigationStack.forEach(state => {
-                        const col = renderColumn(state);
-                        if (col) col.classList.remove('column-hidden');
-                    });
+                    activeColumns = [...navigationStack];
                 }
+                activeColumns.forEach(state => {
+                    const col = renderColumn(state);
+                    if (col) col.classList.remove('column-hidden');
+                });
             }
             btnBackMobile.style.display = navigationStack.length > 0 ? 'block' : 'none';
-        }
+        };
 
-        function renderColumn(state) {
+        const renderColumn = (state) => {
             const { level, category, key } = state;
             const config = categoryConfig[category];
             if (!config) return null;
+            
             const columnEl = columns[config.levels[level - 1]];
             if (!columnEl) return null;
             columnEl.innerHTML = '';
-            
+
             const backButtonPC = document.createElement('button');
             backButtonPC.className = 'btn-back-pc';
             backButtonPC.textContent = '‹ 목록으로 돌아가기';
@@ -152,18 +170,9 @@
                     itemEl.textContent = itemKey;
                     itemEl.onclick = () => handleItemClick(level + 1, category, itemKey);
                     switch (config.listStyle) {
-                        case 'icon-button':
-                            itemEl.className = 'icon-button';
-                            itemEl.style.backgroundColor = typeColors[itemKey] || '#ccc';
-                            break;
-                        case 'color-text':
-                            itemEl.className = 'list-item';
-                            itemEl.style.color = itemColors[itemKey] || '#333';
-                            itemEl.style.fontWeight = 'bold';
-                            break;
-                        default:
-                            itemEl.className = 'list-item';
-                            break;
+                        case 'icon-button': itemEl.className = 'icon-button'; itemEl.style.backgroundColor = typeColors[itemKey] || '#ccc'; break;
+                        case 'color-text': itemEl.className = 'list-item'; itemEl.style.color = itemColors[itemKey] || '#333'; itemEl.style.fontWeight = 'bold'; break;
+                        default: itemEl.className = 'list-item'; break;
                     }
                     container.appendChild(itemEl);
                 });
@@ -176,9 +185,9 @@
                 }
             }
             return columnEl;
-        }
-        
-        function refreshTopAd() {
+        };
+
+        const refreshTopAd = () => {
             const today = new Date().toISOString().split('T')[0];
             if (isAdmin || localStorage.getItem('adBlockUser') === today) {
                 topAdBanner.innerHTML = `<div style="color:#999; text-align:center; width: 100%;">운영자 모드 또는 어뷰징 방지 정책에 의해 광고가 숨김 처리되었습니다.</div>`;
@@ -186,25 +195,24 @@
             }
             topAdBanner.innerHTML = `<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2125965839205311" data-ad-slot="5532734526" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
             try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { console.error("AdSense Error:", e); }
-        }
+        };
 
-        function handleAdClick() {
+        const handleAdClick = () => {
             const now = new Date();
             const today = now.toISOString().split('T')[0];
             let clickData = JSON.parse(localStorage.getItem('adClickData') || '{}');
             if (clickData.date !== today) { clickData = { count: 0, time: 0, date: today }; }
             if (!clickData.time || (now.getTime() - clickData.time > 3600000)) {
-                clickData.count = 1;
-                clickData.time = now.getTime();
+                clickData.count = 1; clickData.time = now.getTime();
             } else { clickData.count++; }
             if (clickData.count >= 5) {
                 localStorage.setItem('adBlockUser', today);
                 refreshTopAd();
             }
             localStorage.setItem('adClickData', JSON.stringify(clickData));
-        }
+        };
 
-        function init() {
+        const init = () => {
             if (isAdmin) console.log("운영자 모드 활성화.");
             sidebarEl.innerHTML = `<h1>포켓몬 정보</h1><ul class="nav-menu" id="main-nav">
                 <li data-category="pokemonType">포켓몬 타입</li><li data-category="pokemonGrade">포켓몬 등급</li>
@@ -228,7 +236,7 @@
             }
             refreshTopAd();
             renderView();
-        }
+        };
         init();
     </script>
 </body>
